@@ -119,7 +119,7 @@ export const ProductosPage = () => {
       {/* Modal Nuevo Producto */}
       {showModal && (
         <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content border-0 rounded-4 shadow">
               <div className="modal-header border-bottom-0 pb-0">
                 <h5 className="modal-title fw-bold text-cafe">
