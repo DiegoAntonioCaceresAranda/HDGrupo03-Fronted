@@ -3,14 +3,23 @@ import productosMock from '../data/Producto';
 import ProductosForm from '../components/Producto/ProductosForm';
 
 export const ProductosPage = () => {
-  // Estado para ver el modal
+  // 1. Metemos los datos en un estado para poder eliminarlos de la vista
+  const [productos, setProductos] = useState(productosMock);
   const [showModal, setShowModal] = useState(false);
 
-  const inversionTotal = productosMock.reduce((total, prod) => total + (prod.stock * prod.precioVenta), 0);
+  // 2. Función para eliminar un producto
+  const eliminarProducto = (id: number, nombre: string) => {
+    // Preguntamos por seguridad antes de borrar (Al estilo backend)
+    if (window.confirm(`¿Estás seguro de que deseas eliminar el producto: ${nombre}?`)) {
+      const nuevaLista = productos.filter(producto => producto.id !== id);
+      setProductos(nuevaLista);
+    }
+  };
+
+  const inversionTotal = productos.reduce((total, prod) => total + (prod.stock * prod.precioVenta), 0);
 
   return (
     <div className="container mt-4">
-      
       {/* Cabecera */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
         <div>
@@ -18,10 +27,12 @@ export const ProductosPage = () => {
           <small className="text-muted">Gestión de inventario para el modelo de mercado</small>
         </div>
         <div>
+          <button className="btn btn-outline-cafe me-2">
+            <i className="bi bi-file-earmark-excel me-1"></i> Excel
+          </button>
           <button className="btn btn-outline-secondary me-2">
             <i className="bi bi-file-earmark-pdf me-1"></i> PDF
           </button>
-          {/* boton para encender el modal */}
           <button className="btn btn-cafe fw-semibold" onClick={() => setShowModal(true)}>
             <i className="bi bi-plus-lg me-1"></i> Nuevo Producto
           </button>
@@ -30,7 +41,6 @@ export const ProductosPage = () => {
 
       {/* Tarjetas y Filtros */}
       <div className="row mb-4">
-        {/* Lado Izquierdo: metricas */}
         <div className="col-md-5 d-flex gap-3 mb-3 mb-md-0">
            <div className="card shadow-sm flex-fill border-0 rounded-4">
              <div className="card-body py-3 d-flex align-items-center">
@@ -39,7 +49,7 @@ export const ProductosPage = () => {
                </div>
                <div>
                  <small className="text-muted fw-bold d-block" style={{letterSpacing: '1px'}}>ITEMS</small>
-                 <h4 className="mb-0 fw-bold">{productosMock.length}</h4>
+                 <h4 className="mb-0 fw-bold">{productos.length}</h4>
                </div>
              </div>
            </div>
@@ -57,7 +67,6 @@ export const ProductosPage = () => {
            </div>
         </div>
 
-        {/* Lado Derecho: Buscador */}
         <div className="col-md-7 d-flex">
           <div className="card shadow-sm border-0 rounded-4 w-100">
             <div className="card-body py-2 d-flex flex-column flex-md-row align-items-center gap-3 h-100">
@@ -94,7 +103,7 @@ export const ProductosPage = () => {
               </tr>
             </thead>
             <tbody>
-              {productosMock.map((producto, index) => (
+              {productos.map((producto, index) => (
                 <tr key={producto.id}>
                   <td className="ps-4 text-muted">{index + 1}</td>
                   <td className="fw-bold text-secondary">{producto.codigo}</td>
@@ -106,9 +115,27 @@ export const ProductosPage = () => {
                     </span>
                   </td>
                   <td className="fw-semibold">S/ {producto.precioVenta.toFixed(2)}</td>
+                  
+                  {/* botones de accion */}
                   <td className="pe-4 text-end">
-                    <button className="btn btn-sm btn-outline-cafe text-uppercase" style={{fontSize: '0.75rem', fontWeight: 'bold'}}>Editar</button>
+                    {/* boton editar: blanco con borde y letras marrones */}
+                    <button 
+                      className="btn btn-sm btn-outline-cafe me-2" 
+                      title="Editar Producto"
+                      onClick={() => setShowModal(true)}
+                    >
+                      <i className="bi bi-pencil-square"></i>
+                    </button>
+                    {/* boton eliminar */}
+                    <button 
+                      className="btn btn-sm btn-danger" 
+                      title="Eliminar Producto"
+                      onClick={() => eliminarProducto(producto.id, producto.nombre)}
+                    >
+                      <i className="bi bi-trash"></i>
+                    </button>
                   </td>
+
                 </tr>
               ))}
             </tbody>
@@ -116,19 +143,18 @@ export const ProductosPage = () => {
         </div>
       </div>
 
-      {/* Modal Nuevo Producto */}
+      {/* modal nuevo y editar Producto */}
       {showModal && (
         <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content border-0 rounded-4 shadow">
               <div className="modal-header border-bottom-0 pb-0">
                 <h5 className="modal-title fw-bold text-cafe">
-                  <i className="bi bi-box-seam me-2"></i>Nuevo Producto
+                  <i className="bi bi-box-seam me-2"></i>Gestión de Producto
                 </h5>
                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
               </div>
               <div className="modal-body">
-                {/* Aquí inyectamos desde: (components/) */}
                 <ProductosForm />
               </div>
               <div className="modal-footer border-top-0 pt-0">
