@@ -5,30 +5,88 @@ import type { Categoria } from "../data/Categoria";
 
 export const Categorias = () => {
 
-  // Estado local para poder eliminar categorías de la vista
+  // Lista de categorias
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
-  // Control del modal
+  // Modal
   const [showModal, setShowModal] = useState(false);
 
+  // Categoría a editar
+  const [categoriaEditar, setCategoriaEditar] =
+   useState<Categoria | null>(null);
+
+  // Buscador
+  const [busquedad, setBusqueda] = useState("");
+
+  // READ
   useEffect(() => {
-    cargarCategorias();
+    const datos = catergoriaService.listarCategorias();
+    setCategorias(datos);
   }, []);
 
-  const cargarCategorias = () => {
-    const data = catergoriaService.listarCategorias();
-    setCategorias(data);
+  // MODAL CREAR
+  const abrirNuevaCategoria = () => {
+    setCategoriaEditar(null);
+    setShowModal(true);
+  };
+
+  // MODAL EDITAR
+  const editarCategoria = (categoria: Categoria) => {
+    setCategoriaEditar(categoria);
+    setShowModal(true);
+  };
+
+  //CREATE / UPDATE
+  const guardarCategoria = (
+    datos: Omit<Categoria, "id">
+  ) => {
+    if (categoriaEditar) {
+      //UPDATE
+      const categoriaActualizada =
+      catergoriaService.actualizarCategoria(
+        categoriaEditar.id,datos
+      );
+
+      if(categoriaActualizada) {
+        setCategorias(
+          catergoriaService.listarCategorias()
+        );
+      }
+    } else {
+      //CREATE
+      catergoriaService.crearCategoria(datos);
+      setCategorias(
+        catergoriaService.listarCategorias()
+      );
+    }
+    
+    setShowModal(false);
+    setCategoriaEditar(null)
   }
 
-  // Eliminar categoría
-  const eliminarCategoria = (id: number, nombre: string) => {
-    if (window.confirm (
-      `¿Estás seguro de que deseas eliminar la categoría: ${nombre}?`
-    )) {
-      catergoriaService.eliminarCategoria(id);
-      cargarCategorias();
+  //DELETE
+  const eliminarCategoria = (
+    id: number,
+    nombre: string
+  ) => {
+    const confirmar = window.confirm(
+      `¿Estás seguro de que deseas eliminar la categoría "${nombre}"?`
+    );
+    if (!confirmar) {
+      return;
     }
+
+    catergoriaService.eliminarCategoria(id);
+    setCategorias(
+      catergoriaService.listarCategorias()
+    );
   };
+
+  //SEARCH
+  const categoriasFiltradas = categorias.filter(
+    categoria =>
+      categoria.nombre.toLowerCase().includes(busquedad.toLowerCase())
+  );
 
   return (
     <div className="container mt-4">
@@ -48,7 +106,7 @@ export const Categorias = () => {
         <div>
           <button
             className="btn btn-cafe fw-semibold"
-            onClick={() => setShowModal(true)}
+            onClick={abrirNuevaCategoria}
           >
             <i className="bi bi-plus-lg me-1"></i>
             Nueva Categoría
@@ -93,6 +151,10 @@ export const Categorias = () => {
                   type="text"
                   className="form-control bg-light border-0"
                   placeholder="Buscar categoría..."
+                  value={busquedad}
+                  onChange={(e) => 
+                    setBusqueda(e.target.value)
+                  }
                 />
               </div>
             </div>
@@ -118,7 +180,7 @@ export const Categorias = () => {
               </tr>
             </thead>
             <tbody>
-              {categorias.map((categoria, index) => (
+              {categoriasFiltradas.map((categoria, index) => (
                 <tr key={categoria.id}>
                   <td className="ps-4 text-muted">
                     {index + 1}
@@ -131,7 +193,7 @@ export const Categorias = () => {
                     <button
                       className="btn btn-sm btn-outline-cafe me-2"
                       title="Editar Categoría"
-                      onClick={() => setShowModal(true)}
+                      onClick={() => editarCategoria(categoria)}
                     >
                       <i className="bi bi-pencil-square"></i>
                     </button>
@@ -151,6 +213,12 @@ export const Categorias = () => {
                   </td>
                 </tr>
               ))}
+              {/* SIN RESULTADOS */}
+              <tr>
+                <td colSpan={3} className="text-center py-4 text-muted">
+                  No se encontraron cateogiras.
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -167,37 +235,55 @@ export const Categorias = () => {
         >
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 rounded-4 shadow">
+
               {/* HEADER */}
-              <div className="modal-header border-bottom-0 pb-0">
+              <div className="modal-header border-bottom-0">
                 <h5 className="modal-title fw-bold text-cafe">
                   <i className="bi bi-tags me-2"></i>
-                  Gestión de Categoría
+                  {categoriaEditar
+                    ? "Editar Categoría"
+                    : "Nueva Categoría"}
                 </h5>
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setCategoriaEditar(null);
+                  }}
                 ></button>
               </div>
-              {/* BODY */}
+
+              {/* FORMULARIO */}
               <div className="modal-body">
-                <CategoriaForm/>
+                <CategoriaForm
+                  categoria={categoriaEditar}
+                  onSave={guardarCategoria}
+                />
               </div>
+
+
               {/* FOOTER */}
-              <div className="modal-footer border-top-0 pt-0">
+              <div className="modal-footer border-top-0">
                 <button
                   type="button"
                   className="btn btn-light rounded-pill px-4"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setCategoriaEditar(null);
+                  }}
                 >
                   Cancelar
                 </button>
                 <button
-                  type="button"
+                  type="submit"
+                  form="categoriaForm"
                   className="btn btn-cafe rounded-pill px-4"
                 >
-                  <i className="bi bi-cloud-arrow-up me-2"></i>
-                  Guardar Categoría
+                  <i className="bi bi-check-lg me-2"></i>
+                  {categoriaEditar
+                    ? "Actualizar Categoría"
+                    : "Guardar Categoría"}
                 </button>
               </div>
             </div>
