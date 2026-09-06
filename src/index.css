@@ -4,34 +4,3 @@ body {
   font-family: 'Sora', sans-serif;
   background-color: #f4f6f9;
 }
-
-:root {
-  --cafe-oscuro: #5E3C23; 
-  --cafe-claro: #F5EEE9;  
-}
-
-/* Colores de productosPage */
-.text-cafe { color: var(--cafe-oscuro) !important; }
-.bg-cafe-light { background-color: var(--cafe-claro) !important; }
-.border-cafe { border-color: var(--cafe-oscuro) !important; }
-
-/*los botones para que sean marrones */
-.btn-cafe {
-  background-color: var(--cafe-oscuro);
-  color: white;
-  border: 1px solid var(--cafe-oscuro);
-}
-.btn-cafe:hover {
-  background-color: #422917; 
-  color: white;
-}
-
-.btn-outline-cafe {
-  color: var(--cafe-oscuro);
-  border: 1px solid var(--cafe-oscuro);
-  background-color: transparent;
-}
-.btn-outline-cafe:hover {
-  background-color: var(--cafe-oscuro);
-  color: white;
-}
