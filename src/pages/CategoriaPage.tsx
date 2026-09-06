@@ -181,7 +181,7 @@ export const Categorias = () => {
               </div>
               {/* BODY */}
               <div className="modal-body">
-                <CategoriaForm />
+                <CategoriaForm/>
               </div>
               {/* FOOTER */}
               <div className="modal-footer border-top-0 pt-0">
