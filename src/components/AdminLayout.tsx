@@ -4,6 +4,7 @@ import type { FC, PropsWithChildren, ReactElement } from "react";
 import {
   LayoutDashboard,
   ShoppingCart,
+  ShoppingBag,
   Package,
   BarChart3,
   Settings,
@@ -26,7 +27,8 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
   { label: "Orders", icon: ShoppingCart, path: "/admin/orders" },
-  { label: "Inventory", icon: Package, path: "/admin/inventory" },
+  { label: "Categories", icon: ShoppingBag, path: "admin/categories" },
+  { label: "Inventory", icon: Package, path: "/admin/products" },
   { label: "Reportes", icon: BarChart3, path: "/admin/reports" },
 ];
 
