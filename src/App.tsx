@@ -1,23 +1,18 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
+import type { FC, ReactElement } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import PaginaPrincipal from "./pages/PaginaPrincipal";
+import PaginaDashboard from "./pages/PaginaDashboard";
+import PaginaReportes from "./pages/PaginaReportes";
 
-const DashboardTemporal = () => (
-  <div className="container mt-5 text-center">
-    <h1 className="text-success">¡Bienvenido al Dashboard!</h1>
-    <p className="text-muted">Has iniciado sesión correctamente. Aquí irá la vista de tu compañero.</p>
-  </div>
+const App: FC = (): ReactElement => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/admin" element={<PaginaDashboard />} />
+      <Route path="/admin/reports" element={<PaginaReportes />} />
+    </Routes>
+  </BrowserRouter>
 );
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<DashboardTemporal />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
 
 export default App;
