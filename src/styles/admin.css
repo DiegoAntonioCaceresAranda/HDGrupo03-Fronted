@@ -1,0 +1,104 @@
+@import url("https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&family=Manrope:wght@400;600;700&display=swap");
+
+.admin-shell {
+  --admin-inverse-surface: #30312e;
+  --admin-outline-variant: #d4c3ba;
+  --admin-secondary: #695c4e;
+  --admin-primary: #553722;
+  --admin-surface: #fbf9f5;
+  --admin-primary-container: #6f4e37;
+  --admin-primary-fixed-dim: #eabda0;
+  --admin-background: #fbf9f5;
+  --admin-tertiary: #57361c;
+  --admin-surface-container-low: #f5f3ef;
+  --admin-secondary-fixed: #f1e0cd;
+  --admin-tertiary-fixed: #ffdcc4;
+  --admin-on-primary-container: #eec1a4;
+  --admin-on-secondary-container: #6f6254;
+  --admin-secondary-container: #f1e0cd;
+  --admin-inverse-on-surface: #f2f0ed;
+  --admin-on-surface: #1b1c1a;
+  --admin-on-background: #1b1c1a;
+  --admin-on-surface-variant: #50453e;
+
+  --admin-font-display: "Literata", serif;
+  --admin-font-body: "Manrope", sans-serif;
+
+  background-color: var(--admin-background);
+  color: var(--admin-on-background);
+  font-family: var(--admin-font-body);
+}
+
+/* ─── Sidebar ────────────────────────────────────────────── */
+.admin-sidebar {
+  width: 280px;
+}
+.admin-main {
+  margin-left: 0;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .admin-main {
+    margin-left: 280px;
+    width: calc(100% - 280px);
+  }
+}
+
+.admin-nav-link {
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+  color: var(--admin-on-surface-variant);
+}
+.admin-nav-link:hover {
+  background-color: color-mix(in srgb, var(--admin-secondary-container) 33%, transparent);
+  color: var(--admin-primary);
+}
+.admin-nav-link.active {
+  color: var(--admin-primary);
+  background-color: color-mix(in srgb, var(--admin-secondary-container) 33%, transparent);
+  font-weight: 700;
+  border-right: 4px solid var(--admin-primary);
+}
+
+/* ─── Interacciones genéricas ───────────────────────────── */
+.admin-icon-btn,
+.admin-profile-btn,
+.admin-load-more {
+  transition: background-color 0.15s ease;
+}
+.admin-icon-btn:hover,
+.admin-profile-btn:hover,
+.admin-load-more:hover {
+  background-color: var(--admin-surface-container-low);
+}
+
+.admin-range-btn:hover:not(.admin-range-active) {
+  color: var(--admin-primary);
+}
+
+.admin-link-btn {
+  transition: color 0.15s ease;
+}
+.admin-link-btn:hover {
+  color: var(--admin-primary-container);
+}
+
+/* ─── Tarjetas tipo bento ───────────────────────────────── */
+.admin-card {
+  background-color: var(--admin-surface);
+  border-color: var(--admin-surface-container-low);
+  box-shadow: 0px 4px 20px rgba(111, 78, 55, 0.08);
+}
+
+/* ─── Tooltip de barras del gráfico ─────────────────────── */
+.admin-bar-tooltip {
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  pointer-events: none;
+  background-color: var(--admin-inverse-surface);
+  color: var(--admin-inverse-on-surface);
+}
+.admin-bar-wrap:hover .admin-bar-tooltip {
+  opacity: 1;
+}
