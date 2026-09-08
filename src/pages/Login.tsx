@@ -21,7 +21,7 @@ const Login = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLogin = (e) => {
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Submit presionado con:", email, password); // Revisa si esto sale en tu consola (F12)
     setError('');
