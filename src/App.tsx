@@ -3,13 +3,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import PaginaDashboard from "./pages/PaginaDashboard";
 import PaginaReportes from "./pages/PaginaReportes";
+import { ProductosPage } from "./pages/ProductosPage";
 
 const App: FC = (): ReactElement => (
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route path="/dashboard" element={<PaginaDashboard />} />
-      <Route path="/admin/reports" element={<PaginaReportes />} />
+      <Route path="/dashboard" element={<PaginaDashboard/>} />
+      <Route path="/admin/products" element={<ProductosPage/>}/>
+      <Route path="/admin/reports" element={<PaginaReportes/>} />
     </Routes>
   </BrowserRouter>
 );

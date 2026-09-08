@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ProductoService } from '../services/ProductoService';
 import ProductosForm from '../components/Producto/ProductosForm';
 
-import AdminLayout from '../components/ui/AdminLayout';
+import AdminLayout from '../components/AdminLayout';
 
 export const ProductosPage = () => {
   //capa de servicio para obtener los datos
