@@ -11,3 +11,7 @@ body {
   font-family: 'Sora', sans-serif;
   background-color: #f4f6f9;
 }
+.btn-outline-cafe:hover {
+  background-color: var(--cafe-oscuro);
+  color: white;
+}
