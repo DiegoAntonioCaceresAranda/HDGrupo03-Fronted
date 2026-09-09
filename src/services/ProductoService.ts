@@ -105,7 +105,7 @@ const eliminarProducto = (id: number): boolean => {
     return true;
 };
 
-export const productoService = {
+export const ProductoService = {
     listarProductos,
     crearProducto,
     actualizarProducto,
