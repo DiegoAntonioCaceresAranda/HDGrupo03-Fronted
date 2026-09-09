@@ -33,7 +33,7 @@ const Login = () => {
 
       if (email.trim() === correoFalso && password === passwordFalsa) {
         localStorage.setItem('user', JSON.stringify({ email: email, rol: 'admin' }));
-        navigate('/dashboard');
+        navigate('/admin');
       } else {
         setError('Credenciales incorrectas. Usa: admin@collinscafe.com / 123456');
       }
