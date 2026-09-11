@@ -1,22 +1,14 @@
-import api from "../../../config/axios";
 import type { DashboardData, DateRange } from "../types";
 import { getMockDashboardData } from "./mockData";
+import { construirDashboardDesdeVentas } from "../utils/buildDashboardFromVentas";
+import { VentaService } from "../../../services/VentaService";
 
-const rangeToParam: Record<DateRange, string> = {
-  Hoy: "today",
-  "Esta semana": "week",
-  "Este mes": "month",
-};
-
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 export async function getDashboardData(range: DateRange): Promise<DashboardData> {
   if (USE_MOCK_DATA) {
     return getMockDashboardData(range);
   }
 
-  const { data } = await api.get<DashboardData>("/dashboard", {
-    params: { range: rangeToParam[range] },
-  });
-  return data;
+  return construirDashboardDesdeVentas(VentaService.listarVentas(), range);
 }
