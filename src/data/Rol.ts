@@ -1,7 +1,7 @@
 export interface Rol {
     id: number
-    nombre: String
-    descripcion: String
+    nombre: string
+    descripcion: string
 }
 
 const rolesMock: Rol[] = [
