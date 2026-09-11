@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import CategoriaForm from "../components/Categoria/CategoriasForm";
 import { catergoriaService } from "../services/CategoriaService";
 import AdminLayout from "../components/AdminLayout";
