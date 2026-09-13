@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import logoCortina from '../assets/cafe.png'; 
+import { Link } from 'react-router-dom';
+import logoCortina from '../assets/cafe.png';
 
 const ClienteHome: React.FC = () => {
   // Banners dinámicos principales
@@ -34,7 +35,7 @@ const ClienteHome: React.FC = () => {
     return () => clearInterval(interval);
   }, [banners.length]);
 
-  
+
   const productos = [
     {
       nombre: "CAPPUCCINO ARTESANAL",
@@ -100,7 +101,7 @@ const ClienteHome: React.FC = () => {
 
   return (
     <div style={{ backgroundColor: '#fcfbfa', color: '#4a403b', fontFamily: 'sans-serif', minHeight: '100vh' }}>
-      
+
       {/* --- IMPORTACIÓN DE BOOTSTRAP Y BOOTSTRAP ICONS --- */}
       <link
         rel="stylesheet"
@@ -195,16 +196,16 @@ const ClienteHome: React.FC = () => {
         }
       `}</style>
 
-      
+
       <nav className="navbar navbar-expand-lg sticky-top shadow-sm py-3" style={{ backgroundColor: '#211c18', borderBottom: '1px solid #3a322b' }}>
         <div className="container-fluid px-4">
-          
+
           <button className="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
             <span className="navbar-toggler-icon"></span>
           </button>
 
           <div className="collapse navbar-collapse justify-content-between align-items-center w-100" id="navbarContent">
-            
+
             {/* 1. IZQUIERDA: Enlaces de navegación */}
             <ul className="navbar-nav gap-4 mb-2 mb-lg-0">
               <li className="nav-item">
@@ -214,27 +215,29 @@ const ClienteHome: React.FC = () => {
                 <a className="nav-link text-white-50 fw-semibold tracking-wider text-uppercase small" href="#nosotros">Nosotros</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link text-white-50 fw-semibold tracking-wider text-uppercase small" href="#carta">Carta</a>
+                <Link className="nav-link text-white-50 fw-semibold tracking-wider text-uppercase small" to="/carta-principal">
+                  Carta
+                </Link>              
               </li>
             </ul>
 
-            
+
             <div className="navbar-brand text-center m-0 d-flex align-items-center gap-2 position-absolute start-50 translate-middle-x">
               <a href="#" className="text-decoration-none d-flex align-items-center gap-2">
-                <img 
-                  src={logoCortina} 
-                  alt="Collins Café Logo" 
+                <img
+                  src={logoCortina}
+                  alt="Collins Café Logo"
                   style={{ width: '32px', height: '32px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
                 />
                 <span className="fw-bold tracking-widest text-white" style={{ letterSpacing: '2.5px', fontSize: '1.1rem' }}>COLLINS CAFÉ</span>
               </a>
             </div>
 
-            
+
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
               <li className="nav-item">
                 <span className="text-white-50 small fw-semibold px-3 py-2 rounded-pill" style={{ backgroundColor: 'rgba(255,255,255,0.08)', letterSpacing: '1px' }}>
-                   ¡Bienvenido!
+                  ¡Bienvenido!
                 </span>
               </li>
             </ul>
@@ -244,8 +247,8 @@ const ClienteHome: React.FC = () => {
       </nav>
 
       {/* --- BANNER DINÁMICO CON MOVIMIENTO E IMÁGENES REALES --- */}
-      <header 
-        id="inicio" 
+      <header
+        id="inicio"
         className="hero-section text-white text-center py-7 d-flex align-items-center justify-content-center"
         style={{ backgroundImage: `url(${banners[currentBanner].imagen})`, minHeight: '580px' }}
       >
@@ -262,7 +265,7 @@ const ClienteHome: React.FC = () => {
               <p className="lead text-light mb-4 mx-auto" style={{ fontSize: '1.2rem', maxWidth: '700px', textShadow: '1px 1px 4px rgba(0,0,0,0.6)' }}>
                 {banners[currentBanner].subtitulo}
               </p>
-              
+
               <div className="d-flex justify-content-center gap-2 mt-4">
                 {banners.map((_, index) => (
                   <button
@@ -288,11 +291,11 @@ const ClienteHome: React.FC = () => {
       {/* --- SECCIÓN DE MINI BANNERS --- */}
       <section className="py-5 container">
         <div className="row g-4">
-          
+
           {/* Tarjeta 1: Comida Saludable */}
           <div className="col-md-4">
-            <div 
-              className="feature-banner-card shadow-sm text-center p-4" 
+            <div
+              className="feature-banner-card shadow-sm text-center p-4"
               style={{ backgroundImage: `url('https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80')` }}
             >
               <div className="feature-banner-overlay"></div>
@@ -307,8 +310,8 @@ const ClienteHome: React.FC = () => {
 
           {/* Tarjeta 2: Amplio Horario de Atención */}
           <div className="col-md-4">
-            <div 
-              className="feature-banner-card shadow-sm text-center p-4" 
+            <div
+              className="feature-banner-card shadow-sm text-center p-4"
               style={{ backgroundImage: `url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80')` }}
             >
               <div className="feature-banner-overlay"></div>
@@ -323,8 +326,8 @@ const ClienteHome: React.FC = () => {
 
           {/* Tarjeta 3: Varios Espacios */}
           <div className="col-md-4">
-            <div 
-              className="feature-banner-card shadow-sm text-center p-4" 
+            <div
+              className="feature-banner-card shadow-sm text-center p-4"
               style={{ backgroundImage: `url('https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=80')` }}
             >
               <div className="feature-banner-overlay"></div>
@@ -350,9 +353,9 @@ const ClienteHome: React.FC = () => {
 
         {/* CONTENEDOR CORREDIZO CON FLECHAS */}
         <div className="position-relative px-md-4">
-          
+
           {/* Botón Izquierda */}
-          <button 
+          <button
             onClick={scrollLeft}
             className="btn position-absolute start-0 top-50 translate-middle-y shadow rounded-circle d-none d-md-flex align-items-center justify-content-center"
             style={{ width: '45px', height: '45px', backgroundColor: '#fff', color: '#5c4033', zIndex: 10, border: '1px solid #e8dfd8' }}
@@ -362,17 +365,17 @@ const ClienteHome: React.FC = () => {
           </button>
 
           {/* Carrusel Desplazable de Tarjetas */}
-          <div 
-            ref={scrollRef} 
+          <div
+            ref={scrollRef}
             className="d-flex gap-4 overflow-x-auto no-scrollbar py-4 px-2"
             style={{ scrollBehavior: 'smooth' }}
           >
             {productos.map((prod, index) => (
               <div key={index} className="product-card card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                 <div style={{ height: '200px', overflow: 'hidden', backgroundColor: '#f2eae3' }}>
-                  <img 
-                    src={prod.imagen} 
-                    alt={prod.nombre} 
+                  <img
+                    src={prod.imagen}
+                    alt={prod.nombre}
                     className="w-100 h-100 object-fit-cover"
                   />
                 </div>
@@ -390,7 +393,7 @@ const ClienteHome: React.FC = () => {
           </div>
 
           {/* Botón Derecha */}
-          <button 
+          <button
             onClick={scrollRight}
             className="btn position-absolute end-0 top-50 translate-middle-y shadow rounded-circle d-none d-md-flex align-items-center justify-content-center"
             style={{ width: '45px', height: '45px', backgroundColor: '#fff', color: '#5c4033', zIndex: 10, border: '1px solid #e8dfd8' }}
@@ -404,7 +407,7 @@ const ClienteHome: React.FC = () => {
 
       {/* --- BANNERS PROMOCIONALES CON CABECERA DE NOVEDADES --- */}
       <section className="py-5 container">
-        
+
         {/* Cabecera de Novedades */}
         <div className="text-center mb-4">
           <span className="text-uppercase fw-bold small tracking-wider" style={{ color: '#b08968' }}>Lo más reciente</span>
@@ -416,14 +419,14 @@ const ClienteHome: React.FC = () => {
         </div>
 
         <div className="row g-4">
-          
+
           {/* Banner Promocional 1 */}
           <div className="col-lg-12">
             <div className="promo-banner-container row g-0 align-items-center">
               <div className="col-md-6 order-md-2" style={{ minHeight: '320px', overflow: 'hidden' }}>
-                <img 
-                  src="https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=1000&q=80" 
-                  alt="Pumpkin Spice & Otoño" 
+                <img
+                  src="https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=1000&q=80"
+                  alt="Pumpkin Spice & Otoño"
                   className="w-100 h-100 object-fit-cover"
                 />
               </div>
@@ -441,9 +444,9 @@ const ClienteHome: React.FC = () => {
           <div className="col-lg-12">
             <div className="promo-banner-container row g-0 align-items-center">
               <div className="col-md-6" style={{ minHeight: '320px', overflow: 'hidden' }}>
-                <img 
-                  src="https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=1000&q=80" 
-                  alt="Pecan Crunch" 
+                <img
+                  src="https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=1000&q=80"
+                  alt="Pecan Crunch"
                   className="w-100 h-100 object-fit-cover"
                 />
               </div>
@@ -463,7 +466,7 @@ const ClienteHome: React.FC = () => {
       {/* --- SECCIÓN NOSOTROS / INFORMACIÓN DE LA EMPRESA --- */}
       <section id="nosotros" className="py-5" style={{ backgroundColor: '#f7f3ee' }}>
         <div className="container py-4">
-          
+
           {/* Cabecera de Nosotros */}
           <div className="text-center mb-5">
             <span className="text-uppercase fw-bold small tracking-wider" style={{ color: '#b08968' }}>Quiénes Somos</span>
@@ -515,9 +518,9 @@ const ClienteHome: React.FC = () => {
           <div className="row g-4 justify-content-between">
             <div className="col-lg-4">
               <div className="d-flex align-items-center gap-2 mb-3">
-                <img 
-                  src={logoCortina} 
-                  alt="Silueta Footer" 
+                <img
+                  src={logoCortina}
+                  alt="Silueta Footer"
                   style={{ width: '24px', height: '24px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
                 />
                 <h5 className="fw-bold m-0" style={{ letterSpacing: '1px' }}>COLLINS CAFÉ</h5>
@@ -547,7 +550,7 @@ const ClienteHome: React.FC = () => {
           </div>
 
           <hr className="my-4 border-secondary opacity-25" />
-          
+
           <div className="row align-items-center">
             <div className="col-md-6 text-center text-md-start">
               <p className="text-white-50 small mb-0">&copy; {new Date().getFullYear()} Collins Café. Todos los derechos reservados.</p>
