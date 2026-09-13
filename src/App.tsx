@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
+import ClienteHome from "./pages/ClienteHome";
 
 const DashboardTemporal = () => (
   <div className="container mt-5 text-center">
@@ -13,8 +14,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<ClienteHome />} />
+        <Route path="/admin" element={<Login />} />
         <Route path="/dashboard" element={<DashboardTemporal />} />
+        <Route path="/cliente" element={<ClienteHome />} />
       </Routes>
     </BrowserRouter>
   );
