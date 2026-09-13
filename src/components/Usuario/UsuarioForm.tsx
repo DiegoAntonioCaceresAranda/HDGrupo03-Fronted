@@ -31,13 +31,22 @@ const UsuarioForm: React.FC<UsuarioFormProps> = ({
         }
     }, [usuarioEditar]);
 
+    // MODAL --> (permisos no identificados de dominios de correos / No permitidos)
     const manejarSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // validar campos obligatorios
         if (!nombre || !correo || !rol || !estado) {
             alert("Completa todos los campos obligatorios.");
             return;
         }
+
+        // validar el dominio del correo corporativo , importante el "return"
+        if(!correo.toLowerCase().endsWith("@collinscafe.com")) {
+            alert("No puedes registrar al usuario con un dominio diferente, debes usar (@collinscafe.com)");
+            return;
+        }
+
 
         const usuario: Omit<Usuario, "id" | "codigo"> = {
             nombre,

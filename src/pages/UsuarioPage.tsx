@@ -39,7 +39,7 @@ export const UsuarioPage = () => {
 
     // =========================
     // ABRIR MODAL - EDITAR
-    // =========================
+
 
     const abrirEditarUsuario = (usuario: Usuario) => {
         setUsuarioEditar(usuario);
@@ -49,7 +49,7 @@ export const UsuarioPage = () => {
 
     // =========================
     // CERRAR MODAL
-    // =========================
+
 
     const cerrarModal = () => {
         setShowModal(false);
@@ -99,7 +99,7 @@ export const UsuarioPage = () => {
 
     // =========================
     // ELIMINAR USUARIO
-    // =========================
+
 
     const eliminarUsuario = (
         id: number,
@@ -163,8 +163,9 @@ export const UsuarioPage = () => {
     // RETURN
     // =========================
 
+    // de aqui llama al (AdminLayout), (barrita marrón se activa con linea 168)
     return (
-        <AdminLayout>
+        <AdminLayout activePath="/admin/users">
 
             <div className="container-fluid py-4">
 

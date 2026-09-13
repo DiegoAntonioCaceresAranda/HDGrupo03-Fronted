@@ -202,8 +202,9 @@ export const ProductosPage = () => {
     // =========================
 
     return (
-        <AdminLayout>
+        <AdminLayout activePath="/admin/products">
 
+            
             <div className="container-fluid py-4">
 
                 {/* =========================
