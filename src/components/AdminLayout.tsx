@@ -30,6 +30,7 @@ const navLinks: NavLink[] = [
   { label: "Categories", icon: ShoppingBag, path: "/admin/categories" },
   { label: "Inventory", icon: Package, path: "/admin/products" },
   { label: "Reportes", icon: BarChart3, path: "/admin/reports" },
+  { label: "Usuarios", icon: User, path: "/admin/users"},
 ];
 
 const footerLinks: NavLink[] = [
