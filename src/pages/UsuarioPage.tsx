@@ -1,126 +1,96 @@
 import React, { useState } from "react";
 
-import { ProductoService } from "../services/ProductoService";
-import ProductosForm from "../components/Producto/ProductosForm";
-import { type Producto } from "../data/Producto";
+import { UsuarioService } from "../services/UsuarioService";
+import UsuarioForm from "../components/Usuario/UsuarioForm";
+import { type Usuario } from "../data/Usuario";
 
 import AdminLayout from "../components/AdminLayout";
 
-export const ProductosPage = () => {
+export const UsuarioPage = () => {
 
     // =========================
     // ESTADOS
     // =========================
 
-    const [productos, setProductos] = useState<Producto[]>(
-        ProductoService.listarProductos()
+    const [usuarios, setUsuarios] = useState<Usuario[]>(
+        UsuarioService.listarUsuarios()
     );
 
     const [showModal, setShowModal] = useState(false);
 
-    const [productoEditar, setProductoEditar] =
-        useState<Producto | null>(null);
+    const [usuarioEditar, setUsuarioEditar] =
+        useState<Usuario | null>(null);
 
     const [busqueda, setBusqueda] = useState("");
 
-    const [categoriaFiltro, setCategoriaFiltro] =
-        useState("Todas las categorías");
+    const [rolFiltro, setRolFiltro] =
+        useState("Todos los roles");
 
 
     // =========================
     // ABRIR MODAL - NUEVO
     // =========================
 
-    const abrirNuevoProducto = () => {
-        setProductoEditar(null);
+    const abrirNuevoUsuario = () => {
+        setUsuarioEditar(null);
         setShowModal(true);
     };
 
 
     // =========================
     // ABRIR MODAL - EDITAR
-    // =========================
 
-    const abrirEditarProducto = (producto: Producto) => {
-        setProductoEditar(producto);
+
+    const abrirEditarUsuario = (usuario: Usuario) => {
+        setUsuarioEditar(usuario);
         setShowModal(true);
     };
 
 
     // =========================
     // CERRAR MODAL
-    // =========================
+
 
     const cerrarModal = () => {
         setShowModal(false);
-        setProductoEditar(null);
+        setUsuarioEditar(null);
     };
 
 
     // =========================
-    // GUARDAR PRODUCTO
+    // GUARDAR USUARIO
     // =========================
 
-    const guardarProducto = (
-        datos: Omit<Producto, "id">
+    const guardarUsuario = (
+        datos: Omit<Usuario, "id" | "codigo">
     ) => {
 
-        if (productoEditar) {
+        if (usuarioEditar) {
 
             // UPDATE
-            const productoActualizado =
-                ProductoService.actualizarProducto(
-                    productoEditar.id,
+            const usuarioActualizado =
+                UsuarioService.actualizarUsuario(
+                    usuarioEditar.id,
                     datos
                 );
 
-            if (productoActualizado) {
-
-                setProductos(
-                    ProductoService.listarProductos()
+            if (usuarioActualizado) {
+                setUsuarios(
+                    UsuarioService.listarUsuarios()
                 );
-
-                alert("Producto actualizado correctamente.");
-
+                alert("Usuario actualizado correctamente.");
             }
 
         } else {
 
             // CREATE
+            UsuarioService.crearUsuario(datos);
 
-            // Generar código automáticamente
-            const productosActuales =
-                ProductoService.listarProductos();
-
-            const nuevoNumero =
-                productosActuales.length > 0
-                    ? Math.max(
-                        ...productosActuales.map((p) => {
-                            const numero =
-                                parseInt(
-                                    p.codigo.replace("COD-", "")
-                                );
-
-                            return isNaN(numero) ? 0 : numero;
-                        })
-                    ) + 1
-                    : 1;
-
-            const nuevoCodigo =
-                `COD-${String(nuevoNumero).padStart(3, "0")}`;
-
-            const nuevoProducto = {
-                ...datos,
-                codigo: nuevoCodigo
-            };
-
-            ProductoService.crearProducto(nuevoProducto);
-
-            setProductos(
-                ProductoService.listarProductos()
+            setUsuarios(
+                UsuarioService.listarUsuarios()
             );
 
-            alert("Producto creado correctamente.");
+            alert("Usuario creado correctamente.");
         }
 
         cerrarModal();
@@ -128,30 +98,28 @@ export const ProductosPage = () => {
 
 
     // =========================
-    // ELIMINAR PRODUCTO
-    // =========================
+    // ELIMINAR USUARIO
 
-    const eliminarProducto = (
+
+    const eliminarUsuario = (
         id: number,
         nombre: string
     ) => {
 
         if (
             window.confirm(
-                `¿Estás seguro de que deseas eliminar: ${nombre}?`
+                `¿Estás seguro de que deseas eliminar a: ${nombre}?`
             )
         ) {
 
             const eliminado =
-                ProductoService.eliminarProducto(id);
+                UsuarioService.eliminarUsuario(id);
 
             if (eliminado) {
-
-                setProductos(
-                    ProductoService.listarProductos()
+                setUsuarios(
+                    UsuarioService.listarUsuarios()
                 );
-
-                alert("Producto eliminado correctamente.");
+                alert("Usuario eliminado correctamente.");
             }
         }
     };
@@ -161,24 +129,24 @@ export const ProductosPage = () => {
     // FILTROS
     // =========================
 
-    const productosFiltrados = productos.filter(
-        (producto) => {
+    const usuariosFiltrados = usuarios.filter(
+        (usuario) => {
 
             const coincideBusqueda =
-                producto.nombre
+                usuario.nombre
                     .toLowerCase()
                     .includes(busqueda.toLowerCase()) ||
-                producto.codigo
+                usuario.codigo
                     .toLowerCase()
                     .includes(busqueda.toLowerCase());
 
-            const coincideCategoria =
-                categoriaFiltro === "Todas las categorías" ||
-                producto.categoria === categoriaFiltro;
+            const coincideRol =
+                rolFiltro === "Todos los roles" ||
+                usuario.rol === rolFiltro;
 
             return (
                 coincideBusqueda &&
-                coincideCategoria
+                coincideRol
             );
         }
     );
@@ -188,23 +156,17 @@ export const ProductosPage = () => {
     // MÉTRICAS
     // =========================
 
-    const inversionTotal =
-        productos.reduce(
-            (total, prod) =>
-                total +
-                prod.stock * prod.precioVenta,
-            0
-        );
+    const usuariosActivos = usuarios.filter(u => u.estado === 'Activo').length;
 
 
     // =========================
     // RETURN
     // =========================
 
+    // de aqui llama al (AdminLayout), (barrita marrón se activa con linea 168)
     return (
-        <AdminLayout activePath="/admin/products">
+        <AdminLayout activePath="/admin/users">
 
-            
             <div className="container-fluid py-4">
 
                 {/* =========================
@@ -214,19 +176,15 @@ export const ProductosPage = () => {
                 <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
 
                     <div>
-
                         <h2 className="fw-bold mb-0 text-dark">
-                            Productos
+                            Usuarios
                         </h2>
-
                         <small className="text-muted">
-                            Gestión de inventario para el modelo de mercado
+                            Gestión de accesos y personal del sistema
                         </small>
-
                     </div>
 
                     <div>
-
                         <button
                             className="btn btn-outline-secondary me-2"
                         >
@@ -236,12 +194,11 @@ export const ProductosPage = () => {
 
                         <button
                             className="btn btn-dark fw-semibold"
-                            onClick={abrirNuevoProducto}
+                            onClick={abrirNuevoUsuario}
                         >
                             <i className="bi bi-plus-lg me-1"></i>
-                            Nuevo Producto
+                            Nuevo Usuario
                         </button>
-
                     </div>
 
                 </div>
@@ -255,78 +212,52 @@ export const ProductosPage = () => {
 
                     <div className="col-md-5 d-flex gap-3 mb-3 mb-md-0">
 
-                        {/* ITEMS */}
-
+                        {/* TOTAL USUARIOS */}
                         <div className="card shadow-sm flex-fill border-0">
-
                             <div className="card-body py-3 d-flex align-items-center">
-
                                 <div className="bg-light p-3 rounded-3 me-3 text-dark">
-
-                                    <i className="bi bi-layers fs-3"></i>
-
+                                    <i className="bi bi-people fs-3"></i>
                                 </div>
-
                                 <div>
-
                                     <small className="text-muted fw-bold d-block">
-                                        ITEMS
+                                        TOTAL
                                     </small>
-
                                     <h4 className="mb-0 fw-bold">
-                                        {productos.length}
+                                        {usuarios.length}
                                     </h4>
-
                                 </div>
-
                             </div>
-
                         </div>
 
-
-                        {/* INVERSIÓN */}
-
+                        {/* ACTIVOS */}
                         <div className="card shadow-sm flex-fill border-0">
-
                             <div className="card-body py-3 d-flex align-items-center">
-
-                                <div className="bg-light p-3 rounded-3 me-3 text-dark">
-
-                                    <i className="bi bi-cash-coin fs-3"></i>
-
+                                <div className="bg-light p-3 rounded-3 me-3 text-success">
+                                    <i className="bi bi-person-check fs-3"></i>
                                 </div>
-
                                 <div>
-
                                     <small className="text-muted fw-bold d-block">
-                                        INVERSIÓN
+                                        ACTIVOS
                                     </small>
-
                                     <h4 className="mb-0 fw-bold">
-                                        S/ {inversionTotal.toFixed(2)}
+                                        {usuariosActivos}
                                     </h4>
-
                                 </div>
-
                             </div>
-
                         </div>
 
                     </div>
 
 
                     {/* FILTROS */}
-
                     <div className="col-md-7 d-flex">
-
                         <div className="card shadow-sm border-0 w-100">
-
                             <div className="card-body py-2 d-flex flex-column flex-md-row align-items-center gap-3 h-100">
 
                                 <input
                                     type="text"
                                     className="form-control bg-light border-0"
-                                    placeholder="Buscar producto..."
+                                    placeholder="Buscar usuario..."
                                     value={busqueda}
                                     onChange={(e) =>
                                         setBusqueda(e.target.value)
@@ -339,36 +270,26 @@ export const ProductosPage = () => {
                                         width: "auto",
                                         minWidth: "180px"
                                     }}
-                                    value={categoriaFiltro}
+                                    value={rolFiltro}
                                     onChange={(e) =>
-                                        setCategoriaFiltro(
+                                        setRolFiltro(
                                             e.target.value
                                         )
                                     }
                                 >
-
                                     <option>
-                                        Todas las categorías
+                                        Todos los roles
                                     </option>
-
                                     <option>
-                                        Bebidas Calientes
+                                        Administrador
                                     </option>
-
                                     <option>
-                                        Bebidas Frías
+                                        Empleado
                                     </option>
-
-                                    <option>
-                                        Postres
-                                    </option>
-
                                 </select>
 
                             </div>
-
                         </div>
-
                     </div>
 
                 </div>
@@ -379,139 +300,93 @@ export const ProductosPage = () => {
                 ========================= */}
 
                 <div className="card shadow-sm border-0">
-
                     <div className="card-body p-0 table-responsive">
-
                         <table className="table table-hover align-middle mb-0">
-
                             <thead className="table-light">
-
                                 <tr>
-
                                     <th className="py-3 ps-4 text-muted small fw-bold">
                                         CÓDIGO
                                     </th>
-
                                     <th className="py-3 text-muted small fw-bold">
-                                        PRODUCTO
+                                        NOMBRE
                                     </th>
-
                                     <th className="py-3 text-muted small fw-bold">
-                                        CATEGORÍA
+                                        CORREO
                                     </th>
-
                                     <th className="py-3 text-muted small fw-bold">
-                                        STOCK
+                                        ROL
                                     </th>
-
                                     <th className="py-3 text-muted small fw-bold">
-                                        P. VENTA
+                                        ESTADO
                                     </th>
-
                                     <th className="py-3 pe-4 text-muted small fw-bold text-end">
                                         ACCIONES
                                     </th>
-
                                 </tr>
-
                             </thead>
-
                             <tbody>
-
-                                {productosFiltrados.length > 0 ? (
-
-                                    productosFiltrados.map(
-                                        (producto) => (
-
-                                            <tr key={producto.id}>
-
+                                {usuariosFiltrados.length > 0 ? (
+                                    usuariosFiltrados.map(
+                                        (usuario) => (
+                                            <tr key={usuario.id}>
                                                 <td className="ps-4 fw-bold text-secondary">
-                                                    {producto.codigo}
+                                                    {usuario.codigo}
                                                 </td>
-
                                                 <td className="fw-semibold">
-                                                    {producto.nombre}
+                                                    {usuario.nombre}
                                                 </td>
-
                                                 <td>
-                                                    {producto.categoria}
+                                                    {usuario.correo}
                                                 </td>
-
                                                 <td>
-
-                                                    <span
-                                                        className={`badge ${
-                                                            producto.stock < 15
-                                                                ? "bg-danger"
-                                                                : "bg-success"
-                                                        }`}
-                                                    >
-                                                        {producto.stock}
+                                                    <span className={`badge ${usuario.rol === 'Administrador' ? 'bg-primary' : 'bg-info text-dark'}`}>
+                                                        {usuario.rol === 'Administrador' ? 'Administrador' : 'Empleado'}
                                                     </span>
-
                                                 </td>
-
-                                                <td className="fw-semibold">
-                                                    S/ {producto.precioVenta.toFixed(2)}
+                                                <td>
+                                                    <span className={`badge ${usuario.estado === 'Activo' ? 'bg-success' : 'bg-danger'}`}>
+                                                        {usuario.estado}
+                                                    </span>
                                                 </td>
-
                                                 <td className="pe-4 text-end">
-
-                                                    {/* EDITAR */}
-
                                                     <button
                                                         className="btn btn-sm btn-outline-dark me-2"
                                                         onClick={() =>
-                                                            abrirEditarProducto(
-                                                                producto
+                                                            abrirEditarUsuario(
+                                                                usuario
                                                             )
                                                         }
                                                     >
                                                         <i className="bi bi-pencil-square"></i>
                                                     </button>
-
-                                                    {/* ELIMINAR */}
-
                                                     <button
                                                         className="btn btn-sm btn-danger"
                                                         onClick={() =>
-                                                            eliminarProducto(
-                                                                producto.id,
-                                                                producto.nombre
+                                                            eliminarUsuario(
+                                                                usuario.id,
+                                                                usuario.nombre
                                                             )
                                                         }
                                                     >
                                                         <i className="bi bi-trash"></i>
                                                     </button>
-
                                                 </td>
-
                                             </tr>
-
                                         )
                                     )
-
                                 ) : (
-
                                     <tr>
-
                                         <td
                                             colSpan={6}
                                             className="text-center py-5 text-muted"
                                         >
-                                            No se encontraron productos.
+                                            No se encontraron usuarios.
                                         </td>
-
                                     </tr>
-
                                 )}
-
                             </tbody>
-
                         </table>
-
                     </div>
-
                 </div>
 
 
@@ -520,7 +395,6 @@ export const ProductosPage = () => {
                 ========================= */}
 
                 {showModal && (
-
                     <div
                         className="modal fade show d-block"
                         tabIndex={-1}
@@ -529,56 +403,40 @@ export const ProductosPage = () => {
                                 "rgba(0, 0, 0, 0.5)"
                         }}
                     >
-
                         <div className="modal-dialog modal-dialog-centered modal-lg">
-
                             <div className="modal-content border-0 shadow">
-
                                 <div className="modal-header">
-
                                     <h5 className="modal-title fw-bold text-dark">
-
-                                        {productoEditar
-                                            ? "Editar Producto"
-                                            : "Nuevo Producto"}
-
+                                        {usuarioEditar
+                                            ? "Editar Usuario"
+                                            : "Nuevo Usuario"}
                                     </h5>
-
                                     <button
                                         type="button"
                                         className="btn-close"
                                         onClick={cerrarModal}
                                     ></button>
-
                                 </div>
 
-
                                 <div className="modal-body">
-
-                                    <ProductosForm
-                                        productoEditar={
-                                            productoEditar
+                                    <UsuarioForm
+                                        usuarioEditar={
+                                            usuarioEditar
                                         }
                                         onGuardar={
-                                            guardarProducto
+                                            guardarUsuario
                                         }
                                         onCancelar={
                                             cerrarModal
                                         }
                                     />
-
                                 </div>
-
                             </div>
-
                         </div>
-
                     </div>
-
                 )}
 
             </div>
-
         </AdminLayout>
     );
 };

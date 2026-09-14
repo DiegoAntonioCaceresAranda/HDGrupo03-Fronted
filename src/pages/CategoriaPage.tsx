@@ -78,7 +78,9 @@ export const CategoriasPage = () => {
   );
 
   return (
-    <AdminLayout>
+    <AdminLayout activePath="/admin/categories">
+
+      
       <div className="container mt-4">
         {/* ================= CABECERA ================= */}
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">

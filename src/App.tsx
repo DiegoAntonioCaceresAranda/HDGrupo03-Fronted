@@ -7,6 +7,7 @@ import { CategoriasPage } from "./pages/CategoriaPage";
 import { ProductosPage } from "./pages/ProductosPage";
 import ClienteHome from "./pages/ClienteHome";
 import CartaPrincipal from "./pages/CartaPrincipal";
+import { UsuarioPage } from "./pages/UsuarioPage";
 
 const App: FC = (): ReactElement => (
   <BrowserRouter>
@@ -18,6 +19,7 @@ const App: FC = (): ReactElement => (
       <Route path="/admin/reports" element={<PaginaReportes/>} />
       <Route path="/principal" element={<ClienteHome/>}/>
       <Route path="/carta-principal" element={<CartaPrincipal/>}/>
+      <Route path="/admin/Us"
     </Routes>
   </BrowserRouter>
 );
