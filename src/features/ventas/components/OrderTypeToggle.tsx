@@ -5,7 +5,6 @@ import type { TipoOrden } from "../types";
 const opciones: { tipo: TipoOrden; icono: typeof Coffee }[] = [
   { tipo: "En Local", icono: Coffee },
   { tipo: "Para Llevar", icono: ShoppingBag },
-  { tipo: "Delivery", icono: Bike },
 ];
 
 interface OrderTypeToggleProps {
