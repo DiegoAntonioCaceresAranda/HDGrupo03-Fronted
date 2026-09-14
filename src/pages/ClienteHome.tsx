@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import logoCortina from '../assets/cafe.png';
+import logoCortina from '../assets/Cafe.png';
 
 const ClienteHome: React.FC = () => {
   // Banners dinámicos principales

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logoLogin from '../assets/login.png'; 
-import logoCortina from '../assets/cafe.png'; 
+import logoLogin from '../assets/Login.png'; 
+import logoCortina from '../assets/Cafe.png'; 
 
 const Login = () => {
   const [showCurtain, setShowCurtain] = useState(true);

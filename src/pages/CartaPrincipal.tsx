@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import logoCortina from '../assets/cafe.png';
+import logoCortina from '../assets/Cafe.png';
 
 const CartaPrincipal: React.FC = () => {
   // Pestañas principales superiores
