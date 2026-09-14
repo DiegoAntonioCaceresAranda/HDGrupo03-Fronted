@@ -5,6 +5,8 @@ import PaginaDashboard from "./pages/PaginaDashboard";
 import PaginaReportes from "./pages/PaginaReportes";
 import { CategoriasPage } from "./pages/CategoriaPage";
 import { ProductosPage } from "./pages/ProductosPage";
+import ClienteHome from "./pages/ClienteHome";
+import CartaPrincipal from "./pages/CartaPrincipal";
 
 const App: FC = (): ReactElement => (
   <BrowserRouter>
@@ -14,6 +16,8 @@ const App: FC = (): ReactElement => (
       <Route path="/admin/products" element={<ProductosPage/>}/>
       <Route path="/admin/categories" element={<CategoriasPage/>}/>
       <Route path="/admin/reports" element={<PaginaReportes/>} />
+      <Route path="/principal" element={<ClienteHome/>}/>
+      <Route path="/carta-principal" element={<CartaPrincipal/>}/>
     </Routes>
   </BrowserRouter>
 );
