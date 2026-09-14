@@ -123,9 +123,9 @@ const AdminLayout: FC<PropsWithChildren<AdminLayoutProps>> = ({
             {usersOpen && (
               <div className="d-flex flex-column mt-1 ms-4 gap-1">
                 <a
-                  href="/admin/users"
+                  href="/admin/usuarios"
                   className={`admin-nav-link px-3 py-2 rounded text-decoration-none ${
-                    activePath === "/admin/usearios" ? "active" : ""
+                    activePath === "/admin/usuarios" ? "active" : ""
                   }`}
                 >
                   <span style={{ fontSize: 13, fontWeight: 500 }}>

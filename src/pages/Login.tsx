@@ -42,7 +42,7 @@ const Login = () => {
 
       if (email.trim() === correoFalso && password === passwordFalsa) {
         localStorage.setItem('user', JSON.stringify({ email: email, rol: 'admin' }));
-        navigate('/dashboard'); // Te redirige al dashboard temporal que creaste en App.jsx
+        navigate('/admin'); // Te redirige al dashboard temporal que creaste en App.jsx
       } else {
         setError('Credenciales incorrectas. Usa: admin@collinscafe.com / 123456');
       }
