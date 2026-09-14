@@ -1,5 +1,5 @@
 import type { FC, ReactElement } from "react";
-import { Coffee, ShoppingBag, Bike } from "lucide-react";
+import { Coffee, ShoppingBag} from "lucide-react";
 import type { TipoOrden } from "../types";
 
 const opciones: { tipo: TipoOrden; icono: typeof Coffee }[] = [

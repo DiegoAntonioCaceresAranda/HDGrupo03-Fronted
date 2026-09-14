@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { UsuarioService } from "../services/UsuarioService";
 import UsuarioForm from "../components/Usuario/UsuarioForm";

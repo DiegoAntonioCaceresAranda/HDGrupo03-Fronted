@@ -21,7 +21,7 @@ const ProductosForm: React.FC<ProductosFormProps> = ({
     const [precioVenta, setPrecioVenta] = useState("");
     const [stock, setStock] = useState("");
 
-    const [categorias, setCategorias] = useState<Categoria[]>(
+    const [categorias] = useState<Categoria[]>(
         catergoriaService.listarCategorias()
     );
 
