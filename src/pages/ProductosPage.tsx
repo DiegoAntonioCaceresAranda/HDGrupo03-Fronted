@@ -72,8 +72,6 @@ export const ProductosPage = () => {
 
       if (productoActualizado) {
         setProductos(ProductoService.listarProductos());
-
-        alert("Producto actualizado correctamente.");
       }
     } else {
       // CREATE
@@ -102,8 +100,6 @@ export const ProductosPage = () => {
       ProductoService.crearProducto(nuevoProducto);
 
       setProductos(ProductoService.listarProductos());
-
-      alert("Producto creado correctamente.");
     }
 
     cerrarModal();
@@ -119,8 +115,6 @@ export const ProductosPage = () => {
 
       if (eliminado) {
         setProductos(ProductoService.listarProductos());
-
-        alert("Producto eliminado correctamente.");
       }
     }
   };
