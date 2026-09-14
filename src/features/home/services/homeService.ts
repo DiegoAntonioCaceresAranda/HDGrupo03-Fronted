@@ -1,8 +1,9 @@
-import api from "../../../config/axios";
 import type { HomeDashboardData } from "../types";
+import { construirHomeDesdeVentas } from "../utils/buildHomeFromVentas";
+import { VentaService } from "../../../services/VentaService";
+import { ProductoService } from "../../../services/ProductoService";
 
-// Cambia a false cuando el backend exponga GET /dashboard/home
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 const mockData: HomeDashboardData = {
   quickStats: {
@@ -31,12 +32,11 @@ const mockData: HomeDashboardData = {
 
 /**
  * Trae el resumen general para la portada del panel admin (Dashboard).
- * TODO: apuntar al endpoint real y poner USE_MOCK_DATA en false.
  */
 export async function getHomeDashboardData(): Promise<HomeDashboardData> {
   if (USE_MOCK_DATA) {
     return mockData;
   }
-  const { data } = await api.get<HomeDashboardData>("/dashboard/home");
-  return data;
+
+  return construirHomeDesdeVentas(VentaService.listarVentas(), ProductoService.listarProductos());
 }

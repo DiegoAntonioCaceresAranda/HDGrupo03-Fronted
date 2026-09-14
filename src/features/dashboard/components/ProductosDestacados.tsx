@@ -1,6 +1,7 @@
 import type { FC, ReactElement } from "react";
 import { ChevronRight } from "lucide-react";
 import type { ProductoDestacado } from "../types";
+import { formatoMoneda } from "../utils/dashboardMetrics";
 
 interface ProductosDestacadosProps {
   products: ProductoDestacado[];
@@ -34,7 +35,7 @@ const ProductosDestacados: FC<ProductosDestacadosProps> = ({ products, onViewAll
               className="admin-bar-tooltip position-absolute top-0 start-50 translate-middle-x px-2 py-1 rounded"
               style={{ marginTop: -32, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}
             >
-              {p.valor}
+              {formatoMoneda(p.valor)}
             </div>
           </div>
           <span className="mt-2 text-center w-100 text-truncate" style={{ fontSize: 12, fontWeight: 700, color: "var(--admin-on-surface-variant)" }}>

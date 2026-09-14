@@ -9,12 +9,14 @@ import ClienteHome from "./pages/ClienteHome";
 import CartaPrincipal from "./pages/CartaPrincipal";
 import { UsuarioPage } from "./pages/UsuarioPage";
 import RolesPage from "./pages/RolPage";
+import PaginaVentas from "./pages/PaginaVentas";
 
 const App: FC = (): ReactElement => (
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/admin" element={<PaginaDashboard/>} />
+      <Route path="/admin/ventas" element={<PaginaVentas/>} />
       <Route path="/admin/products" element={<ProductosPage/>}/>
       <Route path="/admin/categories" element={<CategoriasPage/>}/>
       <Route path="/admin/reports" element={<PaginaReportes/>} />
