@@ -8,6 +8,7 @@ import { ProductosPage } from "./pages/ProductosPage";
 import ClienteHome from "./pages/ClienteHome";
 import CartaPrincipal from "./pages/CartaPrincipal";
 import { UsuarioPage } from "./pages/UsuarioPage";
+import RolesPage from "./pages/RolPage";
 
 const App: FC = (): ReactElement => (
   <BrowserRouter>
@@ -19,6 +20,8 @@ const App: FC = (): ReactElement => (
       <Route path="/admin/reports" element={<PaginaReportes/>} />
       <Route path="/principal" element={<ClienteHome/>}/>
       <Route path="/carta-principal" element={<CartaPrincipal/>}/>
+      <Route path="/admin/usuarios" element={<UsuarioPage/>}/>
+      <Route path="/admin/roles" element={<RolesPage/>}/>
     </Routes>
   </BrowserRouter>
 );
