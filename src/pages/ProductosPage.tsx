@@ -23,7 +23,7 @@ export const ProductosPage = () => {
 
   const [busqueda, setBusqueda] = useState("");
 
-  const [categorias, setCategorias] = useState<Categoria[]>(
+  const [categorias] = useState<Categoria[]>(
     catergoriaService.listarCategorias(),
   );
 
