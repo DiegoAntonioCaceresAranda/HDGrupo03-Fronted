@@ -19,7 +19,6 @@ const App: FC = (): ReactElement => (
       <Route path="/admin/reports" element={<PaginaReportes/>} />
       <Route path="/principal" element={<ClienteHome/>}/>
       <Route path="/carta-principal" element={<CartaPrincipal/>}/>
-      <Route path="/admin/Us"
     </Routes>
   </BrowserRouter>
 );
