@@ -3,7 +3,7 @@ export interface Usuario {
     codigo: string;
     nombre: string;
     correo: string;
-    rol: 'Administrador' | 'Empleado';
+    rol: string;
     estado: 'Activo' | 'Inactivo';
 }
 

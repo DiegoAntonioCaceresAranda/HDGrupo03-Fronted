@@ -1,150 +1,151 @@
 import React, { useEffect, useState } from "react";
 import { type Usuario } from "../../data/Usuario";
+import { rolService } from "../../services/RolService";
+import { type Rol } from "../../data/Rol";
 
 interface UsuarioFormProps {
-    usuarioEditar: Usuario | null;
-    onGuardar: (usuario: Omit<Usuario, "id" | "codigo">) => void;
-    onCancelar: () => void;
+  usuarioEditar: Usuario | null;
+  onGuardar: (usuario: Omit<Usuario, "id" | "codigo">) => void;
+  onCancelar: () => void;
 }
 
 const UsuarioForm: React.FC<UsuarioFormProps> = ({
-    usuarioEditar,
-    onGuardar,
-    onCancelar
+  usuarioEditar,
+  onGuardar,
+  onCancelar,
 }) => {
-    const [nombre, setNombre] = useState("");
-    const [correo, setCorreo] = useState("");
-    const [rol, setRol] = useState<"Administrador" | "Empleado" | "">("");
-    const [estado, setEstado] = useState<"Activo" | "Inactivo">("Activo");
+  const [nombre, setNombre] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [rol, setRol] = useState("");
+  const [estado, setEstado] = useState<"Activo" | "Inactivo">("Activo");
 
-    useEffect(() => {
-        if (usuarioEditar) {
-            setNombre(usuarioEditar.nombre);
-            setCorreo(usuarioEditar.correo);
-            setRol(usuarioEditar.rol);
-            setEstado(usuarioEditar.estado);
-        } else {
-            setNombre("");
-            setCorreo("");
-            setRol("");
-            setEstado("Activo");
-        }
-    }, [usuarioEditar]);
+  const [roles, setRoles] = useState<Rol[]>(rolService.listarRoles());
 
-    // MODAL --> (permisos no identificados de dominios de correos / No permitidos)
-    const manejarSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+  useEffect(() => {
+    setRoles(rolService.listarRoles());
+    if (usuarioEditar) {
+      setNombre(usuarioEditar.nombre);
+      setCorreo(usuarioEditar.correo);
+      setRol(usuarioEditar.rol);
+      setEstado(usuarioEditar.estado);
+    } else {
+      setNombre("");
+      setCorreo("");
+      setRol("");
+      setEstado("Activo");
+    }
+  }, [usuarioEditar]);
 
-        // validar campos obligatorios
-        if (!nombre || !correo || !rol || !estado) {
-            alert("Completa todos los campos obligatorios.");
-            return;
-        }
+  // MODAL --> (permisos no identificados de dominios de correos / No permitidos)
+  const manejarSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
-        // validar el dominio del correo corporativo , importante el "return"
-        if(!correo.toLowerCase().endsWith("@collinscafe.com")) {
-            alert("No puedes registrar al usuario con un dominio diferente, debes usar (@collinscafe.com)");
-            return;
-        }
+    // validar campos obligatorios
+    if (!nombre || !correo || !rol || !estado) {
+      alert("Completa todos los campos obligatorios.");
+      return;
+    }
 
+    // validar el dominio del correo corporativo , importante el "return"
+    if (!correo.toLowerCase().endsWith("@collinscafe.com")) {
+      alert(
+        "No puedes registrar al usuario con un dominio diferente, debes usar (@collinscafe.com)",
+      );
+      return;
+    }
 
-        const usuario: Omit<Usuario, "id" | "codigo"> = {
-            nombre,
-            correo,
-            rol: rol as "Administrador" | "Empleado",
-            estado: estado as "Activo" | "Inactivo"
-        };
-
-        onGuardar(usuario);
+    const usuario: Omit<Usuario, "id" | "codigo"> = {
+      nombre,
+      correo,
+      rol: rol as "Administrador" | "Empleado",
+      estado: estado as "Activo" | "Inactivo",
     };
 
-    return (
-        <form onSubmit={manejarSubmit}>
-            <div className="row g-3">
-                {/* Nombre */}
-                <div className="col-md-12">
-                    <label className="form-label fw-bold small text-muted">
-                        Nombre Completo
-                    </label>
-                    <input
-                        type="text"
-                        name="nombre"
-                        className="form-control"
-                        placeholder="Ingrese Nombre"
-                        value={nombre}
-                        onChange={(e) => setNombre(e.target.value)}
-                        required
-                    />
-                </div>
+    onGuardar(usuario);
+  };
 
-                {/* Correo */}
-                <div className="col-md-12">
-                    <label className="form-label fw-bold small text-muted">
-                        Correo Electrónico
-                    </label>
-                    <input
-                        type="email"
-                        name="correo"
-                        className="form-control"
-                        placeholder="ejemplo@collinscafe.com"
-                        value={correo}
-                        onChange={(e) => setCorreo(e.target.value)}
-                        required
-                    />
-                </div>
+  return (
+    <form onSubmit={manejarSubmit}>
+      <div className="row g-3">
+        {/* Nombre */}
+        <div className="col-md-12">
+          <label className="form-label fw-bold small text-muted">
+            Nombre Completo
+          </label>
+          <input
+            type="text"
+            name="nombre"
+            className="form-control"
+            placeholder="Ingrese Nombre"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            required
+          />
+        </div>
 
-                {/* Rol */}
-                <div className="col-md-6">
-                    <label className="form-label fw-bold small text-muted">
-                        Rol del Sistema
-                    </label>
-                    <select
-                        className="form-select"
-                        value={rol}
-                        onChange={(e) => setRol(e.target.value as any)}
-                        required
-                    >
-                        <option value="">Seleccionar...</option>
-                        <option value="Administrador">Administrador</option>
-                        <option value="Empleado">Empleado</option>
-                    </select>
-                </div>
+        {/* Correo */}
+        <div className="col-md-12">
+          <label className="form-label fw-bold small text-muted">
+            Correo Electrónico
+          </label>
+          <input
+            type="email"
+            name="correo"
+            className="form-control"
+            placeholder="ejemplo@collinscafe.com"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            required
+          />
+        </div>
 
-                {/* Estado */}
-                <div className="col-md-6">
-                    <label className="form-label fw-bold small text-muted">
-                        Estado
-                    </label>
-                    <select
-                        className="form-select"
-                        value={estado}
-                        onChange={(e) => setEstado(e.target.value as any)}
-                        required
-                    >
-                        <option value="Activo">Activo</option>
-                        <option value="Inactivo">Inactivo</option>
-                    </select>
-                </div>
-            </div>
+        {/* Rol */}
+        <div className="col-md-6">
+          <label className="form-label fw-bold small text-muted">
+            Rol del Sistema
+          </label>
+          <select
+            className="form-select"
+            value={rol}
+            onChange={(e) => setRol(e.target.value)}
+            required
+          >
+            <option value="">Seleccionar...</option>
 
-            {/* Botones */}
-            <div className="d-flex justify-content-end gap-2 mt-4">
-                <button
-                    type="button"
-                    className="btn btn-light"
-                    onClick={onCancelar}
-                >
-                    Cancelar
-                </button>
-                <button
-                    type="submit"
-                    className="btn btn-dark"
-                >
-                    {usuarioEditar ? "Actualizar Usuario" : "Guardar Usuario"}
-                </button>
-            </div>
-        </form>
-    );
+            {roles.map((rolItem) => (
+              <option key={rolItem.id} value={rolItem.nombre}>
+                {rolItem.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Estado */}
+        <div className="col-md-6">
+          <label className="form-label fw-bold small text-muted">Estado</label>
+          <select
+            className="form-select"
+            value={estado}
+            onChange={(e) => setEstado(e.target.value as any)}
+            required
+          >
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Botones */}
+      <div className="d-flex justify-content-end gap-2 mt-4">
+        <button type="button" className="btn btn-light" onClick={onCancelar}>
+          Cancelar
+        </button>
+        <button type="submit" className="btn btn-dark">
+          {usuarioEditar ? "Actualizar Usuario" : "Guardar Usuario"}
+        </button>
+      </div>
+    </form>
+  );
 };
 
 export default UsuarioForm;
