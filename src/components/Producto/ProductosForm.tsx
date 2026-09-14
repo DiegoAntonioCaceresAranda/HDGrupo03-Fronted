@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { type Producto } from "../../data/Producto";
+import { type Categoria } from "../../data/Categoria";
+import { catergoriaService } from "../../services/CategoriaService";
 
 interface ProductosFormProps {
     productoEditar: Producto | null;
@@ -18,6 +20,10 @@ const ProductosForm: React.FC<ProductosFormProps> = ({
     const [categoria, setCategoria] = useState("");
     const [precioVenta, setPrecioVenta] = useState("");
     const [stock, setStock] = useState("");
+
+    const [categorias, setCategorias] = useState<Categoria[]>(
+        catergoriaService.listarCategorias()
+    );
 
     useEffect(() => {
 
@@ -113,23 +119,15 @@ const ProductosForm: React.FC<ProductosFormProps> = ({
                         onChange={(e) => setCategoria(e.target.value)}
                         required
                     >
-                        <option value="">
-                            Seleccionar...
-                        </option>
-
-                        <option value="Bebidas Calientes">
-                            Bebidas Calientes
-                        </option>
-
-                        <option value="Bebidas Frías">
-                            Bebidas Frías
-                        </option>
-
-                        <option value="Postres">
-                            Postres
-                        </option>
+                        {categorias.map((categoria) => (
+                            <option
+                                key={categoria.id}
+                                value={categoria.nombre}
+                            >
+                                {categoria.nombre}   
+                            </option>
+                        ))}
                     </select>
-
                 </div>
 
                 {/* Nombre */}
