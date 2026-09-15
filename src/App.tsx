@@ -16,12 +16,12 @@ import AdminLayout from "./components/AdminLayout";
 const App: FC = (): ReactElement => (
   <BrowserRouter>
     <Routes>
-      {/* Login */}
-      <Route path="/" element={<Login />} />
-
       {/* Cliente */}
-      <Route path="/principal" element={<ClienteHome />} />
+      <Route path="/" element={<ClienteHome />} />
       <Route path="/carta-principal" element={<CartaPrincipal />} />
+      
+      {/* Login */}
+      <Route path="/login" element={<Login />} />
 
       {/* Admin */}
       <Route path="/admin" element={<AdminLayout />}>
