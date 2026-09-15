@@ -86,7 +86,7 @@ Antes de comenzar, asegúrate de tener instalado:
 
 1. **Clonar el repositorio**
 ```bash 
-git clone [https://github.com/adilsoncarden/nubix_market_frontend.git](https://github.com/adilsoncarden/nubix_market_frontend.git)
+git clone [https://github.com/DiegoAntonioCaceresAranda/HDGrupo03-Fronted.git](https://github.com/DiegoAntonioCaceresAranda/HDGrupo03-Fronted.git)
 ```
 
 2. **Instalar las dependencias** 
