@@ -6,8 +6,8 @@ import PaginaDashboard from "./pages/PaginaDashboard";
 import PaginaReportes from "./pages/PaginaReportes";
 import { CategoriasPage } from "./pages/CategoriaPage";
 import { ProductosPage } from "./pages/ProductosPage";
-/*import ClienteHome from "./pages/ClienteHome";
-import CartaPrincipal from "./pages/CartaPrincipal";*/
+import ClienteHome from "./pages/ClienteHome";
+import CartaPrincipal from "./pages/CartaPrincipal";
 import { UsuarioPage } from "./pages/UsuarioPage";
 import RolesPage from "./pages/RolPage";
 import PaginaVentas from "./pages/PaginaVentas";
@@ -16,12 +16,12 @@ import AdminLayout from "./components/AdminLayout";
 const App: FC = (): ReactElement => (
   <BrowserRouter>
     <Routes>
-      {/* Login */}
-      <Route path="/" element={<Login />} />
-
       {/* Cliente */}
-      <Route path="/principal" element={<h1>CLIENTE FUNCIONA</h1>} />
-      <Route path="/carta-principal" element={<h1>CARTA FUNCIONA</h1>} />
+      <Route path="/" element={<ClienteHome/>} />
+      <Route path="/carta-principal" element={<CartaPrincipal/>} />
+
+      {/* Login */}
+      <Route path="/login" element={<Login />} />
 
       {/* Admin */}
       <Route path="/admin" element={<AdminLayout />}>
