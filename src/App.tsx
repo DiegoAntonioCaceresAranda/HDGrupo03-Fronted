@@ -20,8 +20,8 @@ const App: FC = (): ReactElement => (
       <Route path="/" element={<Login />} />
 
       {/* Cliente */}
-      <Route path="/principal" element={<ClienteHome />} />
-      <Route path="/carta-principal" element={<CartaPrincipal />} />
+      <Route path="/principal" element={<h1>CLIENTE FUNCIONA</h1>} />
+      <Route path="/carta-principal" element={<h1>CARTA FUNCIONA</h1>} />
 
       {/* Admin */}
       <Route path="/admin" element={<AdminLayout />}>
