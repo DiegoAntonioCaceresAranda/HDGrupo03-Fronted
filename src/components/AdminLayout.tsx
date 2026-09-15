@@ -1,6 +1,7 @@
 import { useState } from "react";
 import logo from "../assets/logo.jpeg";
-import type { FC, PropsWithChildren, ReactElement } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import type { FC, ReactElement } from "react";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -38,17 +39,11 @@ const footerLinks: NavLink[] = [
   { label: "Help", icon: HelpCircle, path: "/admin/help" },
 ];
 
-interface AdminLayoutProps {
-  activePath?: string;
-}
-
-const AdminLayout: FC<PropsWithChildren<AdminLayoutProps>> = ({
-  children,
-  activePath = "/admin",
-}): ReactElement => {
+const AdminLayout: FC = (): ReactElement => {
   const [searchTerm, setSearchTerm] = useState("");
-
   const [usersOpen, setUsersOpen] = useState(false);
+
+  const location = useLocation();
 
   return (
     <div className="admin-shell d-flex min-vh-100 w-100">
@@ -82,16 +77,16 @@ const AdminLayout: FC<PropsWithChildren<AdminLayoutProps>> = ({
 
         <div className="d-flex flex-column gap-2 flex-grow-1">
           {navLinks.map(({ label, icon: Icon, path }) => (
-            <a
+            <Link
               key={label}
-              href={path}
+              to={path}
               className={`admin-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded text-decoration-none ${
-                activePath === path ? "active" : ""
+                location.pathname === path ? "active" : ""
               }`}
             >
               <Icon size={20} />
               <span style={{ fontSize: 14, fontWeight: 600 }}>{label}</span>
-            </a>
+            </Link>
           ))}
 
           <div>
@@ -122,25 +117,25 @@ const AdminLayout: FC<PropsWithChildren<AdminLayoutProps>> = ({
 
             {usersOpen && (
               <div className="d-flex flex-column mt-1 ms-4 gap-1">
-                <a
-                  href="/admin/usuarios"
+                <Link
+                  to="/admin/usuarios"
                   className={`admin-nav-link px-3 py-2 rounded text-decoration-none ${
-                    activePath === "/admin/usuarios" ? "active" : ""
+                    location.pathname === "/admin/usuarios" ? "active" : ""
                   }`}
                 >
                   <span style={{ fontSize: 13, fontWeight: 500 }}>
                     Usuarios
                   </span>
-                </a>
+                </Link>
 
-                <a
-                  href="/admin/roles"
+                <Link
+                  to="/admin/roles"
                   className={`admin-nav-link px-3 py-2 rounded text-decoration-none ${
-                    activePath === "/admin/roles" ? "active" : ""
+                    location.pathname === "/admin/roles" ? "active" : ""
                   }`}
                 >
                   <span style={{ fontSize: 13, fontWeight: 500 }}>Roles</span>
-                </a>
+                </Link>
               </div>
             )}
           </div>
@@ -151,14 +146,14 @@ const AdminLayout: FC<PropsWithChildren<AdminLayoutProps>> = ({
           style={{ borderColor: "var(--admin-surface-container-low)" }}
         >
           {footerLinks.map(({ label, icon: Icon, path }) => (
-            <a
+            <Link
               key={label}
-              href={path}
+              to={path}
               className="admin-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded text-decoration-none"
             >
               <Icon size={20} />
               <span style={{ fontSize: 14, fontWeight: 600 }}>{label}</span>
-            </a>
+            </Link>
           ))}
         </div>
       </nav>
@@ -233,7 +228,7 @@ const AdminLayout: FC<PropsWithChildren<AdminLayoutProps>> = ({
           className="flex-grow-1 p-4 w-100"
           style={{ maxWidth: 1440, marginInline: "auto" }}
         >
-          {children}
+          <Outlet/>
         </main>
       </div>
     </div>
