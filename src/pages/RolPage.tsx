@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import RolesForm from "../components/Rol/RolForm";
 import { rolService } from "../services/RolService";
-import AdminLayout from "../components/AdminLayout";
 import type { Rol } from "../data/Rol";
 
 export const RolesPage = () => {
@@ -75,7 +74,7 @@ export const RolesPage = () => {
   );
 
   return (
-    <AdminLayout>
+
       <div className="container mt-4">
         {/* ================= CABECERA ================= */}
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
@@ -259,7 +258,6 @@ export const RolesPage = () => {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 };
 

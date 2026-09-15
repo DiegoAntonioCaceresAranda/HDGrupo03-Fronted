@@ -6,7 +6,6 @@ import { type Usuario } from "../data/Usuario";
 import { rolService } from "../services/RolService";
 import { type Rol } from "../data/Rol";
 
-import AdminLayout from "../components/AdminLayout";
 
 export const UsuarioPage = () => {
   // =========================
@@ -123,7 +122,6 @@ export const UsuarioPage = () => {
 
   // de aqui llama al (AdminLayout), (barrita marrón se activa con linea 168)
   return (
-    <AdminLayout activePath="/admin/users">
       <div className="container-fluid py-4">
         {/* =========================
                     CABECERA
@@ -331,6 +329,5 @@ export const UsuarioPage = () => {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 };

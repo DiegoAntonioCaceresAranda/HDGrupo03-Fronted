@@ -1,6 +1,5 @@
 import type { FC, ReactElement } from "react";
 import { Wallet, ShoppingBag, Receipt, Truck } from "lucide-react";
-import AdminLayout from "../components/AdminLayout";
 import FiltrarFecha from "../features/dashboard/components/FiltrarFecha";
 import StatCard from "../components/ui/StatCard";
 import ProductosDestacados from "../features/dashboard/components/ProductosDestacados";
@@ -12,7 +11,7 @@ const PaginaReportes: FC = (): ReactElement => {
   const { data, loading, error, activeRange, setActiveRange } = useDashboardData();
 
   return (
-    <AdminLayout activePath="/admin/reports">
+    
       <div className="admin-page">
         <div className="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
           <div>
@@ -73,7 +72,6 @@ const PaginaReportes: FC = (): ReactElement => {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 };
 

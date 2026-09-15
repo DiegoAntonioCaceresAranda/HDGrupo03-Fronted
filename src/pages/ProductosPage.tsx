@@ -6,8 +6,6 @@ import { type Producto } from "../data/Producto";
 import { catergoriaService } from "../services/CategoriaService";
 import { type Categoria } from "../data/Categoria";
 
-import AdminLayout from "../components/AdminLayout";
-
 export const ProductosPage = () => {
   // =========================
   // ESTADOS
@@ -149,7 +147,6 @@ export const ProductosPage = () => {
   // =========================
 
   return (
-    <AdminLayout activePath="/admin/products">
       <div className="container-fluid py-4">
         {/* =========================
                     CABECERA
@@ -386,6 +383,5 @@ export const ProductosPage = () => {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 };

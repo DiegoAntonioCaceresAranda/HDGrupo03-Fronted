@@ -1,6 +1,5 @@
 import type { FC, ReactElement } from "react";
 import { DollarSign, ShoppingBag, UserPlus } from "lucide-react";
-import AdminLayout from "../components/AdminLayout";
 import StatCard from "../components/ui/StatCard";
 import AccionesRapidas from "../features/home/components/AccionesRapidas";
 import ListaOrdenes from "../features/home/components/ListaOrdenes";
@@ -13,7 +12,6 @@ const PaginaDashboard: FC = (): ReactElement => {
   const { data, loading, error } = useHomeDashboard();
 
   return (
-    <AdminLayout activePath="/admin">
       <div className="admin-page">
         <div className="mb-4">
           <h2 className="admin-page-title" style={{ fontFamily: "var(--admin-font-display)", fontSize: 36, fontWeight: 700 }}>
@@ -56,7 +54,6 @@ const PaginaDashboard: FC = (): ReactElement => {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 };
 

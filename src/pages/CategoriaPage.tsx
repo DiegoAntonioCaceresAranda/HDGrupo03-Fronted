@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import CategoriaForm from "../components/Categoria/CategoriasForm";
 import { catergoriaService } from "../services/CategoriaService";
-import AdminLayout from "../components/AdminLayout";
 import type { Categoria } from "../data/Categoria";
 
 export const CategoriasPage = () => {
@@ -78,9 +77,6 @@ export const CategoriasPage = () => {
   );
 
   return (
-    <AdminLayout activePath="/admin/categories">
-
-      
       <div className="container mt-4">
         {/* ================= CABECERA ================= */}
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
@@ -261,6 +257,5 @@ export const CategoriasPage = () => {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 };
