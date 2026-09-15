@@ -1,75 +1,56 @@
-# React + TypeScript + Vite
+# Collins Café - Sistema de Panel Administrativo (Nubix Market)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Sistema integral de Punto de Venta (POS) y Dashboard Administrativo diseñado para la gestión eficiente de ventas, inventario, reportes y control de accesos. Este proyecto representa la capa frontend interactiva, construida con principios de Clean Architecture (arquitectura limpia).
 
-Currently, two official plugins are available:
+<p align="center">
+<img src="src/assets/Login.png" alt="Logo Cafeteria">
+</p>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Objetivos del Proyecto
+* Proveer una interfaz de usuario fluida e intuitiva para cajeros y administradores.
+* Mantener un control de estado robusto simulando operaciones de base de datos en memoria (LocalStorage).
+* Establecer una base escalable y tipada para la futura integración con servicios backend.
 
-## React Compiler
+## Tecnologías Utilizadas
+* **Frontend:** React 19, TypeScript, Vite
+* **Enrutamiento:** React Router DOM v7
+* **Estilos y UI:** Bootstrap 5, CSS Custom (Variables), Lucide React & Bootstrap Icons
+* **Conectividad:** Axios (Cliente HTTP)
+* **Persistencia Temporal:** LocalStorage (Simulación / Mock Data)
+* **Control de Versiones:** Git & GitHub (GitFlow, Commits Atómicos)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+## 📁 Estructura del Proyecto
+El código está organizado modularmente para facilitar la mantenibilidad:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```text
+src/
+├── assets/         # Recursos estáticos e imágenes
+├── components/     # Componentes UI reutilizables (Modales, Formularios)
+├── data/           # Interfaces TypeScript y datos simulados (Mocks)
+├── layouts/        # Estructuras maestras (AdminLayout, Sidebar)
+├── pages/          # Vistas principales integradas con el enrutador
+└── services/       # Lógica de negocio y operaciones CRUD
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Módulos Principales
+* **Dashboard:** Vista general con métricas en tiempo real (Ventas del día, pedidos, clientes nuevos y alertas de stock bajo).
+* **Punto de Venta:** Interfaz ágil para cajeros, permitiendo registrar órdenes (En local / Para llevar), aplicar descuentos y calcular subtotales.
+* **Inventario y Categorías:** Gestión del catálogo de productos (CRUD), control de stock, precios y filtrado dinámico.
+* **Reportes:** Visualización de ingresos totales, ticket promedio y listado de transacciones diarias.
+* **Usuarios y Roles:** Módulo de seguridad para la gestión del personal, validación estricta de dominios de correo corporativo (@collinscafe.com) y asignación de permisos operativos.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 
-```
+## Instalación y Ejecución 
+* **Paso 01:** clonar el Repositorio: "git clone https://github.com/DiegoAntonioCaceresAranda/HDGrupo03-Fronted.git"
+* **Paso 02:** Instalar las dependencias: "npm install"
+* **Paso 03:** Levantar el servidor local: "npm run dev"
+
+
+## Credenciales de Prueba
+Para acceder al sistema administrativo con privilegios completos:
+* **Correo:** admin@collinscafe.com
+* **Contraseña:** 123456
+
+
