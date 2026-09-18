@@ -27,16 +27,16 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
+  { label: "Tablero de Control", icon: LayoutDashboard, path: "/admin" },
   { label: "Punto de Venta", icon: ShoppingCart, path: "/admin/ventas" },
-  { label: "Categories", icon: ShoppingBag, path: "/admin/categories" },
-  { label: "Inventory", icon: Package, path: "/admin/products" },
+  { label: "Categorias", icon: ShoppingBag, path: "/admin/categories" },
+  { label: "Inventario", icon: Package, path: "/admin/products" },
   { label: "Reportes", icon: BarChart3, path: "/admin/reports" },
 ];
 
 const footerLinks: NavLink[] = [
-  { label: "Settings", icon: Settings, path: "/admin/settings" },
-  { label: "Help", icon: HelpCircle, path: "/admin/help" },
+  { label: "Configuración", icon: Settings, path: "/admin/settings" },
+  { label: "Ayuda", icon: HelpCircle, path: "/admin/help" },
 ];
 
 const AdminLayout: FC = (): ReactElement => {
