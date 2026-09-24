@@ -425,7 +425,7 @@ const ClienteHome: React.FC = () => {
             <div className="promo-banner-container row g-0 align-items-center">
               <div className="col-md-6 order-md-2" style={{ minHeight: '320px', overflow: 'hidden' }}>
                 <img
-                  src="https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=1000&q=80"
+                  src="https://res.cloudinary.com/a7viibbv/image/upload/v1790261838/kurt_angle_meme.jpg"
                   alt="Pumpkin Spice & Otoño"
                   className="w-100 h-100 object-fit-cover"
                 />

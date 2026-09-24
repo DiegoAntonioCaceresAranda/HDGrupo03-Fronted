@@ -1,5 +1,6 @@
 import type { FC, ReactElement } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import FormularioTem from './FormularioTem';
 
 import Login from "./pages/Login";
 import PaginaDashboard from "./pages/PaginaDashboard";
@@ -33,7 +34,10 @@ const App: FC = (): ReactElement => (
         <Route path="usuarios" element={<UsuarioPage />} />
         <Route path="roles" element={<RolesPage />} />
       </Route>
-    </Routes>
+
+      {/* Cloudinary */}
+        <Route path="/admin/formulario-temporal" element={<FormularioTem />} />
+      </Routes>
   </BrowserRouter>
 );
 
