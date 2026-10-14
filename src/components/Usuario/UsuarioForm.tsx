@@ -16,6 +16,7 @@ const UsuarioForm: React.FC<UsuarioFormProps> = ({
 }) => {
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
+  const [contraseña, setContraseña] = useState("");
   const [rol, setRol] = useState("");
   const [estado, setEstado] = useState<"Activo" | "Inactivo">("Activo");
 
@@ -26,11 +27,13 @@ const UsuarioForm: React.FC<UsuarioFormProps> = ({
     if (usuarioEditar) {
       setNombre(usuarioEditar.nombre);
       setCorreo(usuarioEditar.correo);
+      setContraseña(usuarioEditar.contraseña)
       setRol(usuarioEditar.rol);
       setEstado(usuarioEditar.estado);
     } else {
       setNombre("");
       setCorreo("");
+      setContraseña("");
       setRol("");
       setEstado("Activo");
     }
@@ -41,7 +44,7 @@ const UsuarioForm: React.FC<UsuarioFormProps> = ({
     e.preventDefault();
 
     // validar campos obligatorios
-    if (!nombre || !correo || !rol || !estado) {
+    if (!nombre || !correo || !contraseña || !rol || !estado) {
       alert("Completa todos los campos obligatorios.");
       return;
     }
@@ -57,6 +60,7 @@ const UsuarioForm: React.FC<UsuarioFormProps> = ({
     const usuario: Omit<Usuario, "id" | "codigo"> = {
       nombre,
       correo,
+      contraseña,
       rol: rol as "Administrador" | "Empleado",
       estado: estado as "Activo" | "Inactivo",
     };
@@ -95,6 +99,22 @@ const UsuarioForm: React.FC<UsuarioFormProps> = ({
             placeholder="ejemplo@collinscafe.com"
             value={correo}
             onChange={(e) => setCorreo(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Contraseña */}
+        <div className="col-md-12">
+          <label className="form-label fw-bold small text-muted">
+            Contraseña
+          </label>
+          <input
+            type="text"
+            name="contraseña"
+            className="form-control"
+            placeholder="usuario123"
+            value={contraseña}
+            onChange={(e) => setContraseña(e.target.value)}
             required
           />
         </div>

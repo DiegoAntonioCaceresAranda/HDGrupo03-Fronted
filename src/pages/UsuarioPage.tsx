@@ -230,6 +230,7 @@ export const UsuarioPage = () => {
                   <th className="py-3 ps-4 text-muted small fw-bold">CÓDIGO</th>
                   <th className="py-3 text-muted small fw-bold">NOMBRE</th>
                   <th className="py-3 text-muted small fw-bold">CORREO</th>
+                  <th className="py-3 text-muted small fw-bold">CONTRASEÑA</th>
                   <th className="py-3 text-muted small fw-bold">ROL</th>
                   <th className="py-3 text-muted small fw-bold">ESTADO</th>
                   <th className="py-3 pe-4 text-muted small fw-bold text-end">
@@ -246,6 +247,7 @@ export const UsuarioPage = () => {
                       </td>
                       <td className="fw-semibold">{usuario.nombre}</td>
                       <td>{usuario.correo}</td>
+                      <td>{usuario.contraseña}</td>
                       <td>
                         <span
                           className={`badge ${usuario.rol === "Administrador" ? "bg-primary" : "bg-info text-dark"}`}
@@ -282,7 +284,7 @@ export const UsuarioPage = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="text-center py-5 text-muted">
+                    <td colSpan={7} className="text-center py-5 text-muted">
                       No se encontraron usuarios.
                     </td>
                   </tr>

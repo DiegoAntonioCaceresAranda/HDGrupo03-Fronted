@@ -3,6 +3,7 @@ export interface Usuario {
     codigo: string;
     nombre: string;
     correo: string;
+    contraseña: string;
     rol: string;
     estado: 'Activo' | 'Inactivo';
 }
@@ -13,6 +14,7 @@ export const usuariosMock: Usuario[] = [
         codigo: "USR-001",
         nombre: "Administrador",
         correo: "admin@collinscafe.com",
+        contraseña: "usuario123",
         rol: "Administrador",
         estado: "Activo"
     },
@@ -21,6 +23,7 @@ export const usuariosMock: Usuario[] = [
         codigo: "USR-002",
         nombre: "Christopher Ramirez",
         correo: "Christopher@collinscafe.com",
+        contraseña: "usuario123",
         rol: "Empleado",
         estado: "Activo"
     }
