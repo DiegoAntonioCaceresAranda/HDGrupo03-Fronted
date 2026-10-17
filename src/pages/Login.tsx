@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import logoLogin from '../assets/Login.png'; 
-import logoCortina from '../assets/Cafe.png'; 
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import logoLogin from "../assets/Login.png";
+import logoCortina from "../assets/Cafe.png";
+import { authService } from "../services/AuthServices";
+import axios from "axios";
 
 const Login = () => {
   const [showCurtain, setShowCurtain] = useState(true);
   const [curtainClosing, setCurtainClosing] = useState(false);
-  
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -30,25 +32,56 @@ const Login = () => {
     };
   }, []);
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Submit presionado con:", email, password);
-    setError('');
+
+    setError("");
     setLoading(true);
 
-    setTimeout(() => {
-      const correoFalso = "admin@collinscafe.com";
-      const passwordFalsa = "123456";
+    try {
+      const respuesta = await authService.login({
+        correo: email.trim().toLowerCase(),
+        password: password,
+      });
 
-      if (email.trim() === correoFalso && password === passwordFalsa) {
-        localStorage.setItem('user', JSON.stringify({ email: email, rol: 'admin' }));
-        navigate('/admin'); // Te redirige al dashboard temporal que creaste en App.jsx
+      // Guardar el token JWT recibido del backend
+      localStorage.setItem("collins_token", respuesta.access_token);
+
+      // Guardar los datos reales del usuario
+      localStorage.setItem("user", JSON.stringify(respuesta.usuario));
+
+      // Acceder al panel
+      navigate("/admin", { replace: true });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const estado = error.response?.status;
+        const detalle = error.response?.data?.detail;
+
+        if (estado === 401) {
+          setError("Correo o contraseña incorrectos.");
+        } else if (estado === 403) {
+          setError(
+            typeof detalle === "string"
+              ? detalle
+              : "Tu cuenta no tiene acceso al sistema.",
+          );
+        } else if (!error.response) {
+          setError(
+            "No se pudo conectar con el servidor. Verifica que el backend esté iniciado.",
+          );
+        } else {
+          setError(
+            typeof detalle === "string"
+              ? detalle
+              : "Ocurrió un error al iniciar sesión.",
+          );
+        }
       } else {
-        setError('Credenciales incorrectas. Usa: admin@collinscafe.com / 123456');
+        setError("Ocurrió un error inesperado.");
       }
-      
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   return (
@@ -114,13 +147,18 @@ const Login = () => {
 
       {/* --- EFECTO CORTINA: LOGO ORIGINAL (cafe.png) + MOVIMIENTO DE HUMO --- */}
       {showCurtain && (
-        <div className={`cafe-loader ${curtainClosing ? 'closing' : ''}`}>
+        <div className={`cafe-loader ${curtainClosing ? "closing" : ""}`}>
           <div className="cafe-loader-content">
             <img
               src={logoCortina}
               alt="Collins Café Logo Cortina"
               className="img-fluid logo-steam-effect"
-              style={{ width: '150px', height: '150px', objectFit: 'contain', background: 'transparent' }}
+              style={{
+                width: "150px",
+                height: "150px",
+                objectFit: "contain",
+                background: "transparent",
+              }}
             />
           </div>
         </div>
@@ -129,33 +167,40 @@ const Login = () => {
       {/* --- INTERFAZ DE LOGIN --- */}
       <div
         className="min-vh-100 d-flex align-items-center justify-content-center p-3 login-container-anim"
-        style={{ backgroundColor: '#f7f3ee' }}
+        style={{ backgroundColor: "#f7f3ee" }}
       >
         <div
           className="card shadow-lg border-0 rounded-4 overflow-hidden"
-          style={{ maxWidth: '440px', width: '100%', backgroundColor: '#ffffff' }}
+          style={{
+            maxWidth: "440px",
+            width: "100%",
+            backgroundColor: "#ffffff",
+          }}
         >
           <div
             className="text-white text-center p-4"
-            style={{ backgroundColor: '#8d6e63' }}
+            style={{ backgroundColor: "#8d6e63" }}
           >
             <img
               src={logoLogin}
               alt="Collins Café Logo Login"
               className="img-fluid rounded-circle bg-white p-2 mb-3 shadow"
-              style={{ width: '85px', height: '85px', objectFit: 'contain' }}
+              style={{ width: "85px", height: "85px", objectFit: "contain" }}
             />
-            <h1 className="h5 fw-bold mb-1" style={{ letterSpacing: '1px' }}>
+            <h1 className="h5 fw-bold mb-1" style={{ letterSpacing: "1px" }}>
               COLLINS CAFÉ
             </h1>
-            <p className="text-white-50 mb-0" style={{ fontSize: '0.9rem' }}>
+            <p className="text-white-50 mb-0" style={{ fontSize: "0.9rem" }}>
               Accede a tu cuenta de administración
             </p>
           </div>
 
           <div className="card-body p-4 p-md-5">
             {error && (
-              <div className="alert alert-danger py-2 mb-4" style={{ fontSize: '0.85rem' }}>
+              <div
+                className="alert alert-danger py-2 mb-4"
+                style={{ fontSize: "0.85rem" }}
+              >
                 {error}
               </div>
             )}
@@ -163,7 +208,10 @@ const Login = () => {
             <form onSubmit={handleLogin}>
               {/* Correo */}
               <div className="mb-4">
-                <label className="form-label fw-semibold text-muted mb-2" style={{ fontSize: '0.9rem' }}>
+                <label
+                  className="form-label fw-semibold text-muted mb-2"
+                  style={{ fontSize: "0.9rem" }}
+                >
                   Correo Electrónico
                 </label>
                 <div className="input-group">
@@ -176,7 +224,7 @@ const Login = () => {
                     placeholder="admin@collinscafe.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    style={{ fontSize: '0.95rem' }}
+                    style={{ fontSize: "0.95rem" }}
                     required
                   />
                 </div>
@@ -185,10 +233,17 @@ const Login = () => {
               {/* Contraseña */}
               <div className="mb-4">
                 <div className="d-flex justify-content-between align-items-center mb-2">
-                  <label className="form-label fw-semibold text-muted mb-0" style={{ fontSize: '0.9rem' }}>
+                  <label
+                    className="form-label fw-semibold text-muted mb-0"
+                    style={{ fontSize: "0.9rem" }}
+                  >
                     Contraseña
                   </label>
-                  <a href="#forgot" className="text-decoration-none fw-semibold" style={{ fontSize: '0.85rem', color: '#8d6e63' }}>
+                  <a
+                    href="#forgot"
+                    className="text-decoration-none fw-semibold"
+                    style={{ fontSize: "0.85rem", color: "#8d6e63" }}
+                  >
                     ¿Olvidaste tu clave?
                   </a>
                 </div>
@@ -202,7 +257,7 @@ const Login = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    style={{ fontSize: '0.95rem' }}
+                    style={{ fontSize: "0.95rem" }}
                     required
                   />
                   <button
@@ -210,7 +265,9 @@ const Login = () => {
                     className="btn btn-outline-secondary border-start-0 bg-light"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'} text-muted`}></i>
+                    <i
+                      className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"} text-muted`}
+                    ></i>
                   </button>
                 </div>
               </div>
@@ -221,12 +278,12 @@ const Login = () => {
                 className="btn w-100 fw-bold shadow-sm text-white py-2 mt-2"
                 disabled={loading}
                 style={{
-                  backgroundColor: '#8d6e63',
-                  borderColor: '#8d6e63',
-                  fontSize: '1rem'
+                  backgroundColor: "#8d6e63",
+                  borderColor: "#8d6e63",
+                  fontSize: "1rem",
                 }}
               >
-                {loading ? 'Verificando...' : 'Iniciar Sesión'}
+                {loading ? "Verificando..." : "Iniciar Sesión"}
               </button>
             </form>
           </div>
