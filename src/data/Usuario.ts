@@ -1,30 +1,24 @@
 export interface Usuario {
-    id: number;
-    codigo: string;
-    nombre: string;
-    correo: string;
-    contraseña: string;
-    rol: string;
-    estado: 'Activo' | 'Inactivo';
+  id: number;
+  codigo: string;
+  nombre: string;
+  correo: string;
+  id_rol: number;
+  estado: "Activo" | "Inactivo";
 }
 
-export const usuariosMock: Usuario[] = [
-    {
-        id: 1,
-        codigo: "USR-001",
-        nombre: "Administrador",
-        correo: "admin@collinscafe.com",
-        contraseña: "usuario123",
-        rol: "Administrador",
-        estado: "Activo"
-    },
-    {
-        id: 2,
-        codigo: "USR-002",
-        nombre: "Christopher Ramirez",
-        correo: "Christopher@collinscafe.com",
-        contraseña: "usuario123",
-        rol: "Empleado",
-        estado: "Activo"
-    }
-];
+export interface UsuarioCreate {
+  nombre: string;
+  correo: string;
+  password: string;
+  estado: "Activo" | "Inactivo";
+  id_rol: number;
+}
+
+export interface UsuarioUpdate {
+  nombre?: string;
+  correo?: string;
+  password?: string;
+  estado?: "Activo" | "Inactivo";
+  id_rol?: number;
+}
