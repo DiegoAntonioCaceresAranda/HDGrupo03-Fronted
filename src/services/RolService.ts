@@ -1,6 +1,6 @@
 import api from "../config/axios";
 import type {Rol, RolCreate} from "../data/Rol"
-const StorageKey = "roles";
+
 
 // Inicializar roles
 const listarRoles = async (): Promise<Rol[]> => {

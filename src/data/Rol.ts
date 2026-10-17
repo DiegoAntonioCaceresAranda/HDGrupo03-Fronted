@@ -1,5 +1,5 @@
 export interface Rol {
-    id: number
+    id_rol: number
     nombre: string
     descripcion: string | null;
 }
