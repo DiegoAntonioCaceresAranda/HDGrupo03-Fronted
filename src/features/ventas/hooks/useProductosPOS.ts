@@ -1,52 +1,67 @@
-import { useMemo, useState } from "react";
-import { ProductoService } from "../../../services/ProductoService";
-import { catergoriaService } from "../../../services/CategoriaService";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import type { Producto } from "../../../data/Producto";
+import type { Categoria } from "../../../data/Categoria";
+import * as ProductoModule from "../../../services/ProductoService";
+import * as CategoriaModule from "../../../services/CategoriaService";
 
-export interface CategoriaOpcion {
-  etiqueta: string;
-  total: number;
-}
+export const useProductosPOS = () => {
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [categoriasLista, setCategoriasLista] = useState<string[]>([]);
+  const [categoriaActiva, setCategoriaActiva] = useState<string>("Todos");
+  const [busqueda, setBusqueda] = useState<string>("");
 
-interface UseProductosPOSResult {
-  productos: Producto[];
-  productosFiltrados: Producto[];
-  categorias: CategoriaOpcion[];
-  categoriaActiva: string;
-  setCategoriaActiva: (categoria: string) => void;
-  busqueda: string;
-  setBusqueda: (valor: string) => void;
-  refrescar: () => void;
-}
+  const cargarDatos = useCallback(async () => {
+    try {
+      const prodSrv: any =
+        (ProductoModule as any).ProductoService ??
+        (ProductoModule as any).default ??
+        ProductoModule;
 
-const TODAS = "Todos";
+      const fnProd = prodSrv.obtenerProductosAPI ?? prodSrv.listarProductos;
+      const resProductos = fnProd ? await Promise.resolve(fnProd()) : [];
+      setProductos(Array.isArray(resProductos) ? resProductos : []);
 
-export function useProductosPOS(): UseProductosPOSResult {
-  const [productos, setProductos] = useState<Producto[]>(() => ProductoService.listarProductos());
-  const [categoriaActiva, setCategoriaActiva] = useState<string>(TODAS);
-  const [busqueda, setBusqueda] = useState("");
+      const catSrv: any =
+        (CategoriaModule as any).CategoriaService ??
+        (CategoriaModule as any).default ??
+        CategoriaModule;
 
-  const refrescar = () => setProductos(ProductoService.listarProductos());
+      const fnCat = catSrv.obtenerCategoriasAPI ?? catSrv.listarCategorias;
+      const resCategorias = fnCat ? await Promise.resolve(fnCat()) : [];
+      const listaCat: Categoria[] = Array.isArray(resCategorias)
+        ? resCategorias
+        : [];
 
-  const categorias = useMemo<CategoriaOpcion[]>(() => {
-    const nombresCategorias = catergoriaService.listarCategorias().map((c) => c.nombre);
-    return [
-      { etiqueta: TODAS, total: productos.length },
-      ...nombresCategorias.map((nombre) => ({
-        etiqueta: nombre,
-        total: productos.filter((p) => p.categoria === nombre).length,
-      })),
-    ];
-  }, [productos]);
+      setCategoriasLista(listaCat.map((c) => c.nombre));
+    } catch (error) {
+      console.error("Error al cargar datos del POS:", error);
+      setProductos([]);
+      setCategoriasLista([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarDatos();
+  }, [cargarDatos]);
+
+  const categorias = useMemo(() => {
+    const nombres = new Set<string>(categoriasLista);
+    productos.forEach((p) => {
+      if (p.categoria) nombres.add(p.categoria);
+    });
+    return ["Todos", ...Array.from(nombres)];
+  }, [categoriasLista, productos]);
 
   const productosFiltrados = useMemo(() => {
-    const busquedaNormalizada = busqueda.trim().toLowerCase();
     return productos.filter((producto) => {
-      const coincideCategoria = categoriaActiva === TODAS || producto.categoria === categoriaActiva;
+      const coincideCategoria =
+        categoriaActiva === "Todos" || producto.categoria === categoriaActiva;
+      const termino = busqueda.trim().toLowerCase();
       const coincideBusqueda =
-        !busquedaNormalizada ||
-        producto.nombre.toLowerCase().includes(busquedaNormalizada) ||
-        producto.codigo.toLowerCase().includes(busquedaNormalizada);
+        termino === "" ||
+        (producto.nombre && producto.nombre.toLowerCase().includes(termino)) ||
+        (producto.codigo && producto.codigo.toLowerCase().includes(termino));
+
       return coincideCategoria && coincideBusqueda;
     });
   }, [productos, categoriaActiva, busqueda]);
@@ -59,6 +74,6 @@ export function useProductosPOS(): UseProductosPOSResult {
     setCategoriaActiva,
     busqueda,
     setBusqueda,
-    refrescar,
+    refrescar: cargarDatos,
   };
-}
+};
