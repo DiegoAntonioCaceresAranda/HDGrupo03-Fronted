@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Coffee } from 'lucide-react';
 import logoCortina from '../assets/Cafe.png';
+import { ProductoService } from '../services/ProductoService';
+import type { Producto } from '../data/Producto';
 
 const ClienteHome: React.FC = () => {
-  // Banners dinámicos principales
   const banners = [
     {
       titulo: "LA VIDA COMIENZA DESPUÉS DE UN CAFÉ",
@@ -26,6 +28,7 @@ const ClienteHome: React.FC = () => {
   ];
 
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [productos, setProductos] = useState<Producto[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,57 +38,18 @@ const ClienteHome: React.FC = () => {
     return () => clearInterval(interval);
   }, [banners.length]);
 
-
-  const productos = [
-    {
-      nombre: "CAPPUCCINO ARTESANAL",
-      desc: "Café expreso de altura con leche texturizada al vapor y fina espuma.",
-      precio: "S/ 12.00",
-      imagen: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      nombre: "BATIDO PROTEICO DE PLÁTANO Y MANÍ",
-      desc: "Ideal para ganar masa muscular: plátano, mantequilla de maní natural y leche.",
-      precio: "S/ 15.00",
-      imagen: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      nombre: "CAFÉ LATTE VAINILLA",
-      desc: "Suave combinación de espresso, leche cremosa y un toque de vainilla.",
-      precio: "S/ 13.50",
-      imagen: "https://images.unsplash.com/photo-1561882468-9110e03e0f78?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      nombre: "SMOOTHIE PROTEICO DE AVENA",
-      desc: "Energético con hojuelas de avena, leche descremada, frutos secos y plátano.",
-      precio: "S/ 16.00",
-      imagen: "https://images.unsplash.com/photo-1628556270448-4d6934c43cb5?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      nombre: "BOMBÓN DE LÚCUMA",
-      desc: "Postre artesanal a base de lúcuma peruana con suave cobertura de chocolate.",
-      precio: "S/ 14.00",
-      imagen: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      nombre: "ESPRESSO DOBLE DE ALTURA",
-      desc: "Grano seleccionado 100% peruano con notas intensas y cuerpo robusto.",
-      precio: "S/ 9.00",
-      imagen: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      nombre: "CHEESECAKE DE FRUTOS ROJOS",
-      desc: "Base crujiente de galleta, crema de queso suave y coulis artesanal.",
-      precio: "S/ 16.00",
-      imagen: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      nombre: "CROISSANT DE POLLO Y PALTA",
-      desc: "Croissant de mantequilla recién horneado con pollo y láminas de palta.",
-      precio: "S/ 19.00",
-      imagen: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80"
-    }
-  ];
+  // Cargar productos reales desde FastAPI + Supabase + Cloudinary
+  useEffect(() => {
+    const cargarProductosDestacados = async () => {
+      try {
+        const data = await ProductoService.obtenerProductosAPI();
+        setProductos(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error al cargar productos en el Home:", error);
+      }
+    };
+    cargarProductosDestacados();
+  }, []);
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -101,8 +65,6 @@ const ClienteHome: React.FC = () => {
 
   return (
     <div style={{ backgroundColor: '#fcfbfa', color: '#4a403b', fontFamily: 'sans-serif', minHeight: '100vh' }}>
-
-      {/* --- IMPORTACIÓN DE BOOTSTRAP Y BOOTSTRAP ICONS --- */}
       <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
@@ -139,7 +101,6 @@ const ClienteHome: React.FC = () => {
           position: relative;
           z-index: 2;
         }
-        /* Ocultar barra de scroll pero mantener funcionalidad corrediza */
         .no-scrollbar::-webkit-scrollbar {
           display: none;
         }
@@ -156,7 +117,6 @@ const ClienteHome: React.FC = () => {
         .product-card:hover {
           transform: translateY(-5px);
         }
-        /* Estilos para las tarjetas con imagen de fondo (mini banners de información) */
         .feature-banner-card {
           background-size: cover;
           background-position: center;
@@ -186,8 +146,6 @@ const ClienteHome: React.FC = () => {
           z-index: 2;
           color: #ffffff;
         }
-
-        /* Estilos para los banners con fondo café clarito */
         .promo-banner-container {
           border-radius: 1rem;
           overflow: hidden;
@@ -196,17 +154,13 @@ const ClienteHome: React.FC = () => {
         }
       `}</style>
 
-
       <nav className="navbar navbar-expand-lg sticky-top shadow-sm py-3" style={{ backgroundColor: '#211c18', borderBottom: '1px solid #3a322b' }}>
         <div className="container-fluid px-4">
-
           <button className="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
             <span className="navbar-toggler-icon"></span>
           </button>
 
           <div className="collapse navbar-collapse justify-content-between align-items-center w-100" id="navbarContent">
-
-            {/* 1. IZQUIERDA: Enlaces de navegación */}
             <ul className="navbar-nav gap-4 mb-2 mb-lg-0">
               <li className="nav-item">
                 <a className="nav-link text-white fw-semibold tracking-wider text-uppercase small" href="#inicio">Inicio</a>
@@ -221,7 +175,6 @@ const ClienteHome: React.FC = () => {
               </li>
             </ul>
 
-
             <div className="navbar-brand text-center m-0 d-flex align-items-center gap-2 position-absolute start-50 translate-middle-x">
               <a href="#" className="text-decoration-none d-flex align-items-center gap-2">
                 <img
@@ -233,7 +186,6 @@ const ClienteHome: React.FC = () => {
               </a>
             </div>
 
-
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
               <li className="nav-item">
                 <span className="text-white-50 small fw-semibold px-3 py-2 rounded-pill" style={{ backgroundColor: 'rgba(255,255,255,0.08)', letterSpacing: '1px' }}>
@@ -241,12 +193,11 @@ const ClienteHome: React.FC = () => {
                 </span>
               </li>
             </ul>
-
           </div>
         </div>
       </nav>
 
-      {/* --- BANNER DINÁMICO CON MOVIMIENTO E IMÁGENES REALES --- */}
+      {/* --- BANNER DINÁMICO --- */}
       <header
         id="inicio"
         className="hero-section text-white text-center py-7 d-flex align-items-center justify-content-center"
@@ -291,8 +242,6 @@ const ClienteHome: React.FC = () => {
       {/* --- SECCIÓN DE MINI BANNERS --- */}
       <section className="py-5 container">
         <div className="row g-4">
-
-          {/* Tarjeta 1: Comida Saludable */}
           <div className="col-md-4">
             <div
               className="feature-banner-card shadow-sm text-center p-4"
@@ -308,7 +257,6 @@ const ClienteHome: React.FC = () => {
             </div>
           </div>
 
-          {/* Tarjeta 2: Amplio Horario de Atención */}
           <div className="col-md-4">
             <div
               className="feature-banner-card shadow-sm text-center p-4"
@@ -324,7 +272,6 @@ const ClienteHome: React.FC = () => {
             </div>
           </div>
 
-          {/* Tarjeta 3: Varios Espacios */}
           <div className="col-md-4">
             <div
               className="feature-banner-card shadow-sm text-center p-4"
@@ -339,22 +286,18 @@ const ClienteHome: React.FC = () => {
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
-      {/* --- SECCIÓN CARTA PRINCIPAL  --- */}
+      {/* --- SECCIÓN CARTA PRINCIPAL CONECTADA A CLOUDINARY --- */}
       <section id="carta" className="py-5 container-fluid px-lg-5">
         <div className="text-center mb-5">
           <span className="text-uppercase fw-bold small tracking-wider" style={{ color: '#b08968' }}>Nuestra Selección</span>
-          <h2 className="fw-bold display-6 mt-1" style={{ color: '#5c4033' }}>Especialidades y Bebidas Proteicas</h2>
+          <h2 className="fw-bold display-6 mt-1" style={{ color: '#5c4033' }}>Especialidades de la Casa</h2>
           <div className="mx-auto mt-2 rounded" style={{ width: '60px', height: '3px', backgroundColor: '#b08968' }}></div>
         </div>
 
-        {/* CONTENEDOR CORREDIZO CON FLECHAS */}
         <div className="position-relative px-md-4">
-
-          {/* Botón Izquierda */}
           <button
             onClick={scrollLeft}
             className="btn position-absolute start-0 top-50 translate-middle-y shadow rounded-circle d-none d-md-flex align-items-center justify-content-center"
@@ -364,35 +307,46 @@ const ClienteHome: React.FC = () => {
             <i className="bi bi-chevron-left fs-5"></i>
           </button>
 
-          {/* Carrusel Desplazable de Tarjetas */}
           <div
             ref={scrollRef}
             className="d-flex gap-4 overflow-x-auto no-scrollbar py-4 px-2"
             style={{ scrollBehavior: 'smooth' }}
           >
-            {productos.map((prod, index) => (
-              <div key={index} className="product-card card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-                <div style={{ height: '200px', overflow: 'hidden', backgroundColor: '#f2eae3' }}>
-                  <img
-                    src={prod.imagen}
-                    alt={prod.nombre}
-                    className="w-100 h-100 object-fit-cover"
-                  />
+            {productos.map((prod) => (
+              <div key={prod.id} className="product-card card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div
+                  className="d-flex align-items-center justify-content-center"
+                  style={{ height: '200px', overflow: 'hidden', backgroundColor: '#f2eae3' }}
+                >
+                  {prod.image_url ? (
+                    <img
+                      src={prod.image_url}
+                      alt={prod.nombre}
+                      className="w-100 h-100 object-fit-cover"
+                    />
+                  ) : (
+                    <Coffee size={44} color="#5c4033" />
+                  )}
                 </div>
                 <div className="card-body p-4 d-flex flex-column justify-content-between" style={{ minHeight: '180px' }}>
                   <div>
-                    <h5 className="fw-bold h6 mb-2" style={{ color: '#5c4033' }}>{prod.nombre}</h5>
-                    <p className="text-muted small mb-3" style={{ fontSize: '0.85rem' }}>{prod.desc}</p>
+                    <span className="text-uppercase fw-bold d-block mb-1" style={{ fontSize: '0.7rem', color: '#b08968' }}>
+                      {prod.categoria}
+                    </span>
+                    <h5 className="fw-bold h6 mb-2 text-uppercase" style={{ color: '#5c4033' }}>{prod.nombre}</h5>
+                    <p className="text-muted small mb-3" style={{ fontSize: '0.85rem' }}>
+                    </p>
                   </div>
                   <div className="d-flex align-items-center justify-content-between mt-auto pt-2 border-top">
-                    <span className="fw-bold fs-6" style={{ color: '#b08968' }}>{prod.precio}</span>
+                    <span className="fw-bold fs-6" style={{ color: '#b08968' }}>
+                      S/ {Number(prod.precioVenta).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Botón Derecha */}
           <button
             onClick={scrollRight}
             className="btn position-absolute end-0 top-50 translate-middle-y shadow rounded-circle d-none d-md-flex align-items-center justify-content-center"
@@ -401,14 +355,11 @@ const ClienteHome: React.FC = () => {
           >
             <i className="bi bi-chevron-right fs-5"></i>
           </button>
-
         </div>
       </section>
 
-      {/* --- BANNERS PROMOCIONALES CON CABECERA DE NOVEDADES --- */}
+      {/* --- BANNERS PROMOCIONALES --- */}
       <section className="py-5 container">
-
-        {/* Cabecera de Novedades */}
         <div className="text-center mb-4">
           <span className="text-uppercase fw-bold small tracking-wider" style={{ color: '#b08968' }}>Lo más reciente</span>
           <h3 className="fw-bold fs-2 mt-1" style={{ color: '#5c4033' }}>Novedades que te encantarán</h3>
@@ -419,13 +370,11 @@ const ClienteHome: React.FC = () => {
         </div>
 
         <div className="row g-4">
-
-          {/* Banner Promocional 1 */}
           <div className="col-lg-12">
             <div className="promo-banner-container row g-0 align-items-center">
               <div className="col-md-6 order-md-2" style={{ minHeight: '320px', overflow: 'hidden' }}>
                 <img
-                  src="https://res.cloudinary.com/a7viibbv/image/upload/v1790261838/kurt_angle_meme.jpg"
+                  src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1000&q=80"
                   alt="Pumpkin Spice & Otoño"
                   className="w-100 h-100 object-fit-cover"
                 />
@@ -440,7 +389,6 @@ const ClienteHome: React.FC = () => {
             </div>
           </div>
 
-          {/* Banner Promocional 2 */}
           <div className="col-lg-12">
             <div className="promo-banner-container row g-0 align-items-center">
               <div className="col-md-6" style={{ minHeight: '320px', overflow: 'hidden' }}>
@@ -459,15 +407,12 @@ const ClienteHome: React.FC = () => {
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
-      {/* --- SECCIÓN NOSOTROS / INFORMACIÓN DE LA EMPRESA --- */}
+      {/* --- SECCIÓN NOSOTROS --- */}
       <section id="nosotros" className="py-5" style={{ backgroundColor: '#f7f3ee' }}>
         <div className="container py-4">
-
-          {/* Cabecera de Nosotros */}
           <div className="text-center mb-5">
             <span className="text-uppercase fw-bold small tracking-wider" style={{ color: '#b08968' }}>Quiénes Somos</span>
             <h3 className="fw-bold fs-2 mt-1" style={{ color: '#5c4033' }}>Conoce Nuestra Esencia</h3>
@@ -561,7 +506,6 @@ const ClienteHome: React.FC = () => {
           </div>
         </div>
       </footer>
-
     </div>
   );
 };
