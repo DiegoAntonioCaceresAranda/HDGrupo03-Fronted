@@ -21,10 +21,20 @@ const ProductCard: FC<ProductCardProps> = ({ producto, onAgregar }): ReactElemen
     >
       <div className="d-flex flex-column gap-2">
         <div
-          className="rounded-3 d-flex align-items-center justify-content-center position-relative"
+          className="rounded-3 d-flex align-items-center justify-content-center position-relative overflow-hidden"
           style={{ aspectRatio: "1 / 1", backgroundColor: "var(--admin-secondary-container)" }}
         >
-          <Coffee size={32} color="var(--admin-primary)" />
+          {producto.image_url ? (
+            <img
+              src={producto.image_url}
+              alt={producto.nombre}
+              className="w-100 h-100 position-absolute top-0 start-0"
+              style={{ objectFit: "cover" }}
+            />
+          ) : (
+            <Coffee size={32} color="var(--admin-primary)" />
+          )}
+
           <span
             className="position-absolute top-0 end-0 m-2 px-2 py-1 rounded-pill"
             style={{
@@ -32,6 +42,7 @@ const ProductCard: FC<ProductCardProps> = ({ producto, onAgregar }): ReactElemen
               fontWeight: 700,
               backgroundColor: producto.stock < 15 ? "#fdecea" : "rgba(255,255,255,0.85)",
               color: producto.stock < 15 ? "#b3261e" : "var(--admin-on-surface-variant)",
+              zIndex: 2,
             }}
           >
             {sinStock ? "Sin stock" : `Stock: ${producto.stock}`}
