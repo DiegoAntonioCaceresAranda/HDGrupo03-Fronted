@@ -1,79 +1,52 @@
-import categoriesMock, { type Categoria } from "../data/Categoria";
+import api from "../config/axios";
+import { type Categoria } from "../data/Categoria";
 
-const StorageKey = "categorias";
-
-const inicializarCategorias = () => {
-    const categoriasGuardadas = localStorage.getItem(StorageKey);
-
-    if (!categoriasGuardadas) {
-        localStorage.setItem(StorageKey, JSON.stringify(categoriesMock));
-    }
-};
-
-const obtenerCategorias = (): Categoria[] => {
-    inicializarCategorias();
-
-    const data = localStorage.getItem(StorageKey);
-    return data ? JSON.parse(data) : [];
+// Lo que devuelve FastAPI
+interface CategoriaApi {
+  id_categoria?: number;
+  id?: number;
+  nombre: string;
 }
 
-const guardarCategorias = (categorias: Categoria[]): void => {
-    localStorage.setItem(StorageKey, JSON.stringify(categorias));
+// Convierte a la forma que ya usa tu frontend: { id, nombre }
+const aCategoria = (c: CategoriaApi): Categoria =>
+  ({
+    id: c.id_categoria ?? c.id,
+    nombre: c.nombre,
+  }) as Categoria;
+
+// READ
+const listarCategorias = async (): Promise<Categoria[]> => {
+  const { data } = await api.get<CategoriaApi[]>("/categorias/");
+  return data.map(aCategoria);
 };
 
-//CREATE
-const crearCategoria = (categoria: Omit<Categoria, "id">): Categoria => {
-    const categorias = obtenerCategorias();
-    const nuevoId = categorias.length > 0 ? Math.max(...categorias.map(c => c.id)) + 1 : 1;
-    const nuevaCategoria: Categoria = {id: nuevoId, ...categoria};
-    
-    guardarCategorias([...categorias,nuevaCategoria]);
-    return nuevaCategoria;
+// CREATE
+const crearCategoria = async (
+  categoria: Omit<Categoria, "id">,
+): Promise<Categoria> => {
+  const { data } = await api.post<CategoriaApi>("/categorias/", categoria);
+  return aCategoria(data);
 };
 
-//READ
-const listarCategorias = (): Categoria[] => {
-    return obtenerCategorias();
+// UPDATE
+const actualizarCategoria = async (
+  id: number,
+  datos: Omit<Categoria, "id">,
+): Promise<Categoria> => {
+  const { data } = await api.put<CategoriaApi>(`/categorias/${id}`, datos);
+  return aCategoria(data);
 };
 
-//UPDATE
-const actualizarCategoria = (id: number, datos: Omit<Categoria, "id">): Categoria | null => {
-    const categorias = obtenerCategorias();
-    const categoriaExiste = categorias.find(categorias => categorias.id === id);
-
-    if (!categoriaExiste) {
-        return null;
-    }
-
-    const categoriaActualizada = categorias.map(
-        categorias => categorias.id == id
-         ? {
-            id,
-            ...datos
-         }
-         :categorias
-    );
-
-    guardarCategorias(categoriaActualizada);
-    return categoriaActualizada.find(categorias => categorias.id === id) || null;
+// DELETE
+const eliminarCategoria = async (id: number): Promise<void> => {
+  await api.delete(`/categorias/${id}`);
 };
 
-//DELETE
-const eliminarCategoria = (id: number): boolean => {
-    const categorias = obtenerCategorias();
-    const categoriasFiltradas = categorias.filter(categorias => categorias.id !== id);
-
-    if (categoriasFiltradas.length === categorias.length) {
-        return false;
-    }
-
-    guardarCategorias(categoriasFiltradas);
-    return true;
-};
-
+// Mantengo el nombre "catergoriaService" (con el typo) para no romper tus imports
 export const catergoriaService = {
-    listarCategorias,
-    crearCategoria,
-    actualizarCategoria,
-    eliminarCategoria
+  listarCategorias,
+  crearCategoria,
+  actualizarCategoria,
+  eliminarCategoria,
 };

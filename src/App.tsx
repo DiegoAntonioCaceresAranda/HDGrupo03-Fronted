@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import type { FC, ReactElement } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import FormularioTem from './FormularioTem';
+import FormularioTem from "./FormularioTem";
 
 import Login from "./pages/Login";
 import PaginaDashboard from "./pages/PaginaDashboard";
@@ -14,31 +15,33 @@ import RolesPage from "./pages/RolPage";
 import PaginaVentas from "./pages/PaginaVentas";
 import AdminLayout from "./components/AdminLayout";
 
-const App: FC = (): ReactElement => (
-  <BrowserRouter>
-    <Routes>
-      {/* Cliente */}
-      <Route path="/" element={<ClienteHome />} />
-      <Route path="/carta-principal" element={<CartaPrincipal />} />
-      
-      {/* Login */}
-      <Route path="/login" element={<Login />} />
+const App: FC = (): ReactElement => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Cliente */}
+        <Route path="/" element={<ClienteHome />} />
+        <Route path="/carta-principal" element={<CartaPrincipal />} />
 
-      {/* Admin */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<PaginaDashboard />} />
-        <Route path="ventas" element={<PaginaVentas />} />
-        <Route path="products" element={<ProductosPage />} />
-        <Route path="categories" element={<CategoriasPage />} />
-        <Route path="reports" element={<PaginaReportes />} />
-        <Route path="usuarios" element={<UsuarioPage />} />
-        <Route path="roles" element={<RolesPage />} />
-      </Route>
+        {/* Login */}
+        <Route path="/login" element={<Login />} />
 
-      {/* Cloudinary */}
+        {/* Admin */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<PaginaDashboard />} />
+          <Route path="ventas" element={<PaginaVentas />} />
+          <Route path="products" element={<ProductosPage />} />
+          <Route path="categories" element={<CategoriasPage />} />
+          <Route path="reports" element={<PaginaReportes />} />
+          <Route path="usuarios" element={<UsuarioPage />} />
+          <Route path="roles" element={<RolesPage />} />
+        </Route>
+
+        {/* Cloudinary */}
         <Route path="/admin/formulario-temporal" element={<FormularioTem />} />
       </Routes>
-  </BrowserRouter>
-);
+    </BrowserRouter>
+  );
+};
 
 export default App;
