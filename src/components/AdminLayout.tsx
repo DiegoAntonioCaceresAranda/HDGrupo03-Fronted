@@ -1,6 +1,6 @@
 import { useState } from "react";
 import logo from "../assets/logo.jpeg";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { FC, ReactElement } from "react";
 import {
   LayoutDashboard,
@@ -16,6 +16,7 @@ import {
   ChevronDown,
   User,
   Users,
+  LogOut,
   type LucideIcon,
 } from "lucide-react";
 import "../styles/admin.css";
@@ -42,8 +43,19 @@ const footerLinks: NavLink[] = [
 const AdminLayout: FC = (): ReactElement => {
   const [searchTerm, setSearchTerm] = useState("");
   const [usersOpen, setUsersOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("user");
+    setProfileOpen(false);
+    navigate("/login", { replace: true });
+  };
 
   return (
     <div className="admin-shell d-flex min-vh-100 w-100">
@@ -205,22 +217,54 @@ const AdminLayout: FC = (): ReactElement => {
             >
               <Grid3x3 size={20} />
             </button>
-            <button className="btn admin-profile-btn d-flex align-items-center gap-2 ms-2 p-1 rounded-pill">
-              <div
-                className="rounded-circle d-flex align-items-center justify-content-center"
-                style={{
-                  width: 32,
-                  height: 32,
-                  backgroundColor: "var(--admin-secondary-container)",
-                }}
+
+            <div className="position-relative ms-2">
+              <button
+                type="button"
+                onClick={() => setProfileOpen((prev) => !prev)}
+                className="btn admin-profile-btn d-flex align-items-center gap-2 p-1 rounded-pill"
               >
-                <User size={18} color="var(--admin-secondary)" />
-              </div>
-              <ChevronDown
-                size={18}
-                style={{ color: "var(--admin-on-surface-variant)" }}
-              />
-            </button>
+                <div
+                  className="rounded-circle d-flex align-items-center justify-content-center"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    backgroundColor: "var(--admin-secondary-container)",
+                  }}
+                >
+                  <User size={18} color="var(--admin-secondary)" />
+                </div>
+                <ChevronDown
+                  size={18}
+                  style={{
+                    color: "var(--admin-on-surface-variant)",
+                    transform: profileOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </button>
+
+              {profileOpen && (
+                <div
+                  className="position-absolute end-0 mt-2 p-2 rounded-3 shadow border"
+                  style={{
+                    backgroundColor: "var(--admin-surface, #ffffff)",
+                    minWidth: 180,
+                    zIndex: 1050,
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="btn w-100 d-flex align-items-center gap-2 text-start px-3 py-2 rounded-2 border-0"
+                    style={{ color: "#b3261e", fontSize: 14, fontWeight: 600 }}
+                  >
+                    <LogOut size={16} />
+                    <span>Cerrar sesión</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -228,7 +272,7 @@ const AdminLayout: FC = (): ReactElement => {
           className="flex-grow-1 p-4 w-100"
           style={{ maxWidth: 1440, marginInline: "auto" }}
         >
-          <Outlet/>
+          <Outlet />
         </main>
       </div>
     </div>
