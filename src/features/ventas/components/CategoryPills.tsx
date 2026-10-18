@@ -31,4 +31,4 @@ const CategoryPills: FC<CategoryPillsProps> = ({ categorias, activa, alCambiar }
   </div>
 );
 
-export default CategoryPills;
+export default CategoryPills; 
