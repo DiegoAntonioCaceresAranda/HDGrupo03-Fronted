@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { calcularResumen } from "../utils/posCalculations";
 import type { ItemCarrito, ResumenTicket } from "../types";
-import type { Producto } from "../../../data/Producto";
+import type { Producto } from "../../../services/ProductoService";
 
 interface UseCarritoResult {
   articulos: ItemCarrito[];
@@ -24,7 +24,9 @@ export function useCarrito(): UseCarritoResult {
   const agregarProducto = (producto: Producto) => {
     setError(null);
     setArticulos((anterior) => {
-      const existente = anterior.find((articulo) => articulo.productoId === producto.id);
+      const existente = anterior.find(
+        (articulo) => articulo.productoId === producto.id_producto,
+      );
       const cantidadActual = existente?.cantidad ?? 0;
 
       if (cantidadActual + 1 > producto.stock) {
@@ -34,15 +36,17 @@ export function useCarrito(): UseCarritoResult {
 
       if (existente) {
         return anterior.map((articulo) =>
-          articulo.productoId === producto.id ? { ...articulo, cantidad: articulo.cantidad + 1 } : articulo,
+          articulo.productoId === producto.id_producto
+            ? { ...articulo, cantidad: articulo.cantidad + 1 }
+            : articulo,
         );
       }
 
       return [
         {
-          productoId: producto.id,
+          productoId: producto.id_producto,
           nombre: producto.nombre,
-          precioUnitario: producto.precioVenta,
+          precioUnitario: Number(producto.precio_venta),
           cantidad: 1,
           stockDisponible: producto.stock,
         },
@@ -69,7 +73,9 @@ export function useCarrito(): UseCarritoResult {
   };
 
   const eliminarArticulo = (productoId: number) => {
-    setArticulos((anterior) => anterior.filter((articulo) => articulo.productoId !== productoId));
+    setArticulos((anterior) =>
+      anterior.filter((articulo) => articulo.productoId !== productoId),
+    );
   };
 
   const limpiarCarrito = () => {
