@@ -3,7 +3,7 @@ import type { Rol } from "../../data/Rol";
 
 interface RolesFormProps {
   roles?: Rol | null;
-  onSave: (datos: Omit<Rol, "id">) => void;
+  onSave: (datos: Omit<Rol, "id_rol">) => void;
 }
 
 const RolesForm = ({ roles, onSave }: RolesFormProps) => {
@@ -13,7 +13,7 @@ const RolesForm = ({ roles, onSave }: RolesFormProps) => {
   useEffect(() => {
     if (roles) {
       setNombre(roles.nombre);
-      setDescripcion(roles.descripcion);
+      setDescripcion(roles.descripcion ?? "");
     } else {
       setNombre("");
       setDescripcion("");

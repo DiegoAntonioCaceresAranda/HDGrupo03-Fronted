@@ -1,77 +1,33 @@
-import rolesMock, { type Rol } from "../data/Rol";
+import api from "../config/axios";
+import type {Rol, RolCreate} from "../data/Rol"
 
-const StorageKey = "roles";
 
 // Inicializar roles
-const inicializarRoles = () => {
-    const rolesGuardadas = localStorage.getItem(StorageKey);
-
-    if (!rolesGuardadas) {
-        localStorage.setItem(StorageKey, JSON.stringify(rolesMock));
-    }
+const listarRoles = async (): Promise<Rol[]> => {
+    const respuesta = await api.get<Rol[]>("/roles/");
+    return respuesta.data;
 };
 
-//Obtener roles
-const obtenerRoles = (): Rol[] => {
-    inicializarRoles();
 
-    const data = localStorage.getItem(StorageKey);
-    return data ? JSON.parse(data) : [];
-}
-
-//Guardar roles
-const guardarRoles = (roles: Rol[]): void => {
-    localStorage.setItem(StorageKey, JSON.stringify(roles));
+//Crear roles
+const crearRol = async (datos: RolCreate): Promise<Rol> => {
+  const respuesta = await api.post<Rol>("/roles/", datos);
+  return respuesta.data;
 };
 
-//CREATE
-const crearRol = (rol: Omit<Rol, "id">): Rol => {
-    const roles = obtenerRoles();
-    const nuevoId = roles.length > 0 ? Math.max(...roles.map(c => c.id)) + 1 : 1;
-    const nuevoRol: Rol = {id: nuevoId, ...rol};
-    
-    guardarRoles([...roles,nuevoRol]);
-    return nuevoRol;
-};
-
-//READ
-const listarRoles = (): Rol[] => {
-    return obtenerRoles();
-};
 
 //UPDATE
-const actualizarRol = (id: number, datos: Omit<Rol, "id">): Rol | null => {
-    const roles = obtenerRoles();
-    const rolExiste = roles.find(roles => roles.id === id);
-
-    if (!rolExiste) {
-        return null;
-    }
-
-    const rolActualizado = roles.map(
-        roles => roles.id == id
-         ? {
-            id,
-            ...datos
-         }
-         :roles
-    );
-
-    guardarRoles(rolActualizado);
-    return rolActualizado.find(roles => roles.id === id) || null;
+const actualizarRol = async (id_rol: number, datos: Partial<RolCreate>): Promise<Rol> => {
+  const respuesta = await api.put<Rol>(
+    `/roles/${id_rol}`,
+    datos
+  );
+  return respuesta.data;
 };
 
 //DELETE
-const eliminarRol = (id: number): boolean => {
-    const roles = obtenerRoles();
-    const rolesFiltrados = roles.filter(roles => roles.id !== id);
-
-    if (rolesFiltrados.length === roles.length) {
-        return false;
-    }
-
-    guardarRoles(rolesFiltrados);
-    return true;
+const eliminarRol = async (id_rol: number): Promise<void> => {
+  await api.delete(`/roles/${id_rol}`);
 };
 
 export const rolService = {
