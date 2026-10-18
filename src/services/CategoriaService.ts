@@ -1,75 +1,66 @@
+import api from "../config/axios";
 import categoriesMock, { type Categoria } from "../data/Categoria";
 
 const StorageKey = "categorias";
 
-const inicializarCategorias = () => {
-    const categoriasGuardadas = localStorage.getItem(StorageKey);
-
-    if (!categoriasGuardadas) {
-        localStorage.setItem(StorageKey, JSON.stringify(categoriesMock));
-    }
-};
-
-const obtenerCategorias = (): Categoria[] => {
-    inicializarCategorias();
-
-    const data = localStorage.getItem(StorageKey);
-    return data ? JSON.parse(data) : [];
+interface CategoriaBackend {
+  id_categoria: number;
+  nombre: string;
 }
 
-const guardarCategorias = (categorias: Categoria[]): void => {
+const mapearCategoria = (c: CategoriaBackend): Categoria => ({
+  id: c.id_categoria,
+  nombre: c.nombre,
+});
+
+export const obtenerCategoriasCache = (): Categoria[] => {
+  const data = localStorage.getItem(StorageKey);
+  return data ? JSON.parse(data) : categoriesMock;
+};
+
+// READ (Desde FastAPI / Supabase)
+const listarCategorias = async (): Promise<Categoria[]> => {
+  try {
+    const { data } = await api.get<CategoriaBackend[]>("/categorias/");
+    const categorias = data.map(mapearCategoria);
     localStorage.setItem(StorageKey, JSON.stringify(categorias));
+    return categorias;
+  } catch (error) {
+    console.error("Error al listar categorías desde el backend:", error);
+    return obtenerCategoriasCache();
+  }
 };
 
-//CREATE
-const crearCategoria = (categoria: Omit<Categoria, "id">): Categoria => {
-    const categorias = obtenerCategorias();
-    const nuevoId = categorias.length > 0 ? Math.max(...categorias.map(c => c.id)) + 1 : 1;
-    const nuevaCategoria: Categoria = {id: nuevoId, ...categoria};
-    
-    guardarCategorias([...categorias,nuevaCategoria]);
-    return nuevaCategoria;
+// CREATE
+const crearCategoria = async (
+  categoria: Omit<Categoria, "id">,
+): Promise<Categoria> => {
+  const { data } = await api.post<CategoriaBackend>("/categorias/", {
+    nombre: categoria.nombre,
+  });
+  const nueva = mapearCategoria(data);
+  const actuales = obtenerCategoriasCache();
+  localStorage.setItem(StorageKey, JSON.stringify([...actuales, nueva]));
+  return nueva;
 };
 
-//READ
-const listarCategorias = (): Categoria[] => {
-    return obtenerCategorias();
+// UPDATE
+const actualizarCategoria = async (
+  id: number,
+  datos: Omit<Categoria, "id">,
+): Promise<Categoria | null> => {
+  const { data } = await api.put<CategoriaBackend>(`/categorias/${id}`, {
+    nombre: datos.nombre,
+  });
+  return mapearCategoria(data);
 };
 
-//UPDATE
-const actualizarCategoria = (id: number, datos: Omit<Categoria, "id">): Categoria | null => {
-    const categorias = obtenerCategorias();
-    const categoriaExiste = categorias.find(categorias => categorias.id === id);
-
-    if (!categoriaExiste) {
-        return null;
-    }
-
-    const categoriaActualizada = categorias.map(
-        categorias => categorias.id == id
-         ? {
-            id,
-            ...datos
-         }
-         :categorias
-    );
-
-    guardarCategorias(categoriaActualizada);
-    return categoriaActualizada.find(categorias => categorias.id === id) || null;
+// DELETE
+const eliminarCategoria = async (id: number): Promise<boolean> => {
+  await api.delete(`/categorias/${id}`);
+  return true;
 };
 
-//DELETE
-const eliminarCategoria = (id: number): boolean => {
-    const categorias = obtenerCategorias();
-    const categoriasFiltradas = categorias.filter(categorias => categorias.id !== id);
-
-    if (categoriasFiltradas.length === categorias.length) {
-        return false;
-    }
-
-    guardarCategorias(categoriasFiltradas);
-    return true;
-};
 
 export const catergoriaService = {
     listarCategorias,

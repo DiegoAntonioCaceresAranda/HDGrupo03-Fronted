@@ -4,165 +4,150 @@ import { catergoriaService } from "../services/CategoriaService";
 import type { Categoria } from "../data/Categoria";
 
 export const CategoriasPage = () => {
-  // Lista de categorias
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-
-  // Modal
   const [showModal, setShowModal] = useState(false);
-
-  // Categoría a editar
-  const [categoriaEditar, setCategoriaEditar] = useState<Categoria | null>(
-    null,
-  );
-
-  // Buscador
+  const [categoriaEditar, setCategoriaEditar] = useState<Categoria | null>(null);
   const [busquedad, setBusqueda] = useState("");
 
-  // READ
-  useEffect(() => {
-    const datos = catergoriaService.listarCategorias();
+  const cargarCategorias = async () => {
+    const datos = await catergoriaService.listarCategorias();
     setCategorias(datos);
+  };
+
+  useEffect(() => {
+    cargarCategorias();
   }, []);
 
-  // MODAL CREAR
   const abrirNuevaCategoria = () => {
     setCategoriaEditar(null);
     setShowModal(true);
   };
 
-  // MODAL EDITAR
   const editarCategoria = (categoria: Categoria) => {
     setCategoriaEditar(categoria);
     setShowModal(true);
   };
 
-  //CREATE / UPDATE
-  const guardarCategoria = (datos: Omit<Categoria, "id">) => {
-    if (categoriaEditar) {
-      //UPDATE
-      const categoriaActualizada = catergoriaService.actualizarCategoria(
-        categoriaEditar.id,
-        datos,
-      );
-
-      if (categoriaActualizada) {
-        setCategorias(catergoriaService.listarCategorias());
+  const guardarCategoria = async (datos: Omit<Categoria, "id">) => {
+    try {
+      if (categoriaEditar) {
+        await catergoriaService.actualizarCategoria(categoriaEditar.id, datos);
+      } else {
+        await catergoriaService.crearCategoria(datos);
       }
-    } else {
-      //CREATE
-      catergoriaService.crearCategoria(datos);
-      setCategorias(catergoriaService.listarCategorias());
+      await cargarCategorias();
+      setShowModal(false);
+      setCategoriaEditar(null);
+    } catch (error) {
+      console.error("Error al guardar categoría:", error);
+      alert("No se pudo guardar la categoría. Verifica que el nombre no esté repetido.");
     }
-
-    setShowModal(false);
-    setCategoriaEditar(null);
   };
 
-  //DELETE
-  const eliminarCategoria = (id: number, nombre: string) => {
+  const eliminarCategoria = async (id: number, nombre: string) => {
     const confirmar = window.confirm(
       `¿Estás seguro de que deseas eliminar la categoría "${nombre}"?`,
     );
-    if (!confirmar) {
-      return;
-    }
+    if (!confirmar) return;
 
-    catergoriaService.eliminarCategoria(id);
-    setCategorias(catergoriaService.listarCategorias());
+    try {
+      await catergoriaService.eliminarCategoria(id);
+      await cargarCategorias();
+    } catch (error) {
+      console.error("Error al eliminar categoría:", error);
+      alert("No se pudo eliminar la categoría (puede tener productos asociados).");
+    }
   };
 
-  //SEARCH
   const categoriasFiltradas = categorias.filter((categoria) =>
     categoria.nombre.toLowerCase().includes(busquedad.toLowerCase()),
   );
 
   return (
-      <div className="container mt-4">
-        {/* ================= CABECERA ================= */}
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
-          <div>
-            <h2 className="fw-bold mb-0">
-              Collins Café{" "}
-              <span className="text-secondary fw-normal">/ Categorías</span>
-            </h2>
-            <small className="text-muted">
-              Gestión y organización de las categorías de productos
-            </small>
-          </div>
-          <div>
-            <button
-              className="btn btn-cafe fw-semibold"
-              onClick={abrirNuevaCategoria}
-            >
-              <i className="bi bi-plus-lg me-1"></i>
-              Nueva Categoría
-            </button>
-          </div>
+    <div className="container mt-4">
+      {/* ================= CABECERA ================= */}
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div>
+          <h2 className="fw-bold mb-0">
+            Collins Café{" "}
+            <span className="text-secondary fw-normal">/ Categorías</span>
+          </h2>
+          <small className="text-muted">
+            Gestión y organización de las categorías de productos
+          </small>
         </div>
+        <div>
+          <button
+            className="btn btn-cafe fw-semibold"
+            onClick={abrirNuevaCategoria}
+          >
+            <i className="bi bi-plus-lg me-1"></i>
+            Nueva Categoría
+          </button>
+        </div>
+      </div>
 
-        {/* ================= MÉTRICAS Y BUSCADOR ================= */}
-        <div className="row mb-4">
-          {/* Métrica */}
-          <div className="col-md-5 d-flex gap-3 mb-3 mb-md-0">
-            <div className="card shadow-sm flex-fill border-0 rounded-4">
-              <div className="card-body py-3 d-flex align-items-center">
-                <div className="bg-cafe-light p-3 rounded-3 me-3 text-cafe">
-                  <i className="bi bi-tags fs-3"></i>
-                </div>
-                <div>
-                  <small
-                    className="text-muted fw-bold d-block"
-                    style={{ letterSpacing: "1px" }}
-                  >
-                    CATEGORÍAS
-                  </small>
-                  <h4 className="mb-0 fw-bold">{categorias.length}</h4>
-                </div>
+      {/* ================= MÉTRICAS Y BUSCADOR ================= */}
+      <div className="row mb-4">
+        <div className="col-md-5 d-flex gap-3 mb-3 mb-md-0">
+          <div className="card shadow-sm flex-fill border-0 rounded-4">
+            <div className="card-body py-3 d-flex align-items-center">
+              <div className="bg-cafe-light p-3 rounded-3 me-3 text-cafe">
+                <i className="bi bi-tags fs-3"></i>
               </div>
-            </div>
-          </div>
-
-          {/* Buscador */}
-          <div className="col-md-7 d-flex">
-            <div className="card shadow-sm border-0 rounded-4 w-100">
-              <div className="card-body py-2 d-flex align-items-center gap-3">
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-0">
-                    <i className="bi bi-search text-muted"></i>
-                  </span>
-                  <input
-                    type="text"
-                    className="form-control bg-light border-0"
-                    placeholder="Buscar categoría..."
-                    value={busquedad}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                  />
-                </div>
+              <div>
+                <small
+                  className="text-muted fw-bold d-block"
+                  style={{ letterSpacing: "1px" }}
+                >
+                  CATEGORÍAS
+                </small>
+                <h4 className="mb-0 fw-bold">{categorias.length}</h4>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ================= TABLA ================= */}
-        <div className="card shadow-sm border-0 rounded-4">
-          <div className="card-body p-0">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th className="py-3 ps-4 text-muted small fw-bold">#</th>
-                  <th className="py-3 text-muted small fw-bold">CATEGORÍA</th>
-                  <th className="py-3 pe-4 text-muted small fw-bold text-end">
-                    ACCIONES
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {categoriasFiltradas.map((categoria, index) => (
+        <div className="col-md-7 d-flex">
+          <div className="card shadow-sm border-0 rounded-4 w-100">
+            <div className="card-body py-2 d-flex align-items-center gap-3">
+              <div className="input-group">
+                <span className="input-group-text bg-light border-0">
+                  <i className="bi bi-search text-muted"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control bg-light border-0"
+                  placeholder="Buscar categoría..."
+                  value={busquedad}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= TABLA ================= */}
+      <div className="card shadow-sm border-0 rounded-4">
+        <div className="card-body p-0">
+          <table className="table table-hover align-middle mb-0">
+            <thead className="table-light">
+              <tr>
+                <th className="py-3 ps-4 text-muted small fw-bold">#</th>
+                <th className="py-3 text-muted small fw-bold">CATEGORÍA</th>
+                <th className="py-3 pe-4 text-muted small fw-bold text-end">
+                  ACCIONES
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {categoriasFiltradas.length > 0 ? (
+                categoriasFiltradas.map((categoria, index) => (
                   <tr key={categoria.id}>
                     <td className="ps-4 text-muted">{index + 1}</td>
                     <td className="fw-semibold">{categoria.nombre}</td>
                     <td className="pe-4 text-end">
-                      {/* EDITAR */}
                       <button
                         className="btn btn-sm btn-outline-cafe me-2"
                         title="Editar Categoría"
@@ -170,7 +155,6 @@ export const CategoriasPage = () => {
                       >
                         <i className="bi bi-pencil-square"></i>
                       </button>
-                      {/* ELIMINAR */}
                       <button
                         className="btn btn-sm btn-danger"
                         title="Eliminar Categoría"
@@ -182,80 +166,78 @@ export const CategoriasPage = () => {
                       </button>
                     </td>
                   </tr>
-                ))}
-                {/* SIN RESULTADOS */}
+                ))
+              ) : (
                 <tr>
                   <td colSpan={3} className="text-center py-4 text-muted">
-                    No se encontraron cateogiras.
+                    No se encontraron categorías.
                   </td>
                 </tr>
-              </tbody>
-            </table>
-          </div>
+              )}
+            </tbody>
+          </table>
         </div>
+      </div>
 
-        {/* ================= MODAL ================= */}
-        {showModal && (
-          <div
-            className="modal fade show d-block"
-            tabIndex={-1}
-            style={{
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-            }}
-          >
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content border-0 rounded-4 shadow">
-                {/* HEADER */}
-                <div className="modal-header border-bottom-0">
-                  <h5 className="modal-title fw-bold text-cafe">
-                    <i className="bi bi-tags me-2"></i>
-                    {categoriaEditar ? "Editar Categoría" : "Nueva Categoría"}
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => {
-                      setShowModal(false);
-                      setCategoriaEditar(null);
-                    }}
-                  ></button>
-                </div>
+      {/* ================= MODAL ================= */}
+      {showModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex={-1}
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 rounded-4 shadow">
+              <div className="modal-header border-bottom-0">
+                <h5 className="modal-title fw-bold text-cafe">
+                  <i className="bi bi-tags me-2"></i>
+                  {categoriaEditar ? "Editar Categoría" : "Nueva Categoría"}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => {
+                    setShowModal(false);
+                    setCategoriaEditar(null);
+                  }}
+                ></button>
+              </div>
 
-                {/* FORMULARIO */}
-                <div className="modal-body">
-                  <CategoriaForm
-                    categoria={categoriaEditar}
-                    onSave={guardarCategoria}
-                  />
-                </div>
+              <div className="modal-body">
+                <CategoriaForm
+                  categoria={categoriaEditar}
+                  onSave={guardarCategoria}
+                />
+              </div>
 
-                {/* FOOTER */}
-                <div className="modal-footer border-top-0">
-                  <button
-                    type="button"
-                    className="btn btn-light rounded-pill px-4"
-                    onClick={() => {
-                      setShowModal(false);
-                      setCategoriaEditar(null);
-                    }}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    form="categoriaForm"
-                    className="btn btn-cafe rounded-pill px-4"
-                  >
-                    <i className="bi bi-check-lg me-2"></i>
-                    {categoriaEditar
-                      ? "Actualizar Categoría"
-                      : "Guardar Categoría"}
-                  </button>
-                </div>
+              <div className="modal-footer border-top-0">
+                <button
+                  type="button"
+                  className="btn btn-light rounded-pill px-4"
+                  onClick={() => {
+                    setShowModal(false);
+                    setCategoriaEditar(null);
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  form="categoriaForm"
+                  className="btn btn-cafe rounded-pill px-4"
+                >
+                  <i className="bi bi-check-lg me-2"></i>
+                  {categoriaEditar
+                    ? "Actualizar Categoría"
+                    : "Guardar Categoría"}
+                </button>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
   );
 };
