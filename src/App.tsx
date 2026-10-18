@@ -26,7 +26,7 @@ const App: FC = (): ReactElement => (
       <Route path="/login" element={<Login />} />
 
       {/* Admin */}
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute/>}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<PaginaDashboard />} />
           <Route path="ventas" element={<PaginaVentas />} />
@@ -37,6 +37,7 @@ const App: FC = (): ReactElement => (
           <Route path="roles" element={<RolesPage />} />
         </Route>
       </Route>
+
       {/* Cloudinary */}
       <Route path="/admin/formulario-temporal" element={<FormularioTem />} />
     </Routes>
