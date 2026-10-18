@@ -1,3 +1,4 @@
+
 import { useState, type FC, type ReactElement } from "react";
 import OrderTypeToggle from "../features/ventas/components/OrderTypeToggle";
 import ProductToolbar from "../features/ventas/components/ProductToolbar";
@@ -46,6 +47,7 @@ const PaginaVentas: FC = (): ReactElement => {
   const [cliente, setCliente] = useState("");
   const [metodoPago, setMetodoPago] = useState<MetodoPago>("Efectivo");
   const [procesando, setProcesando] = useState(false);
+
   const [toast, setToast] = useState<ToastState>({
     visible: false,
     titulo: "",
@@ -58,17 +60,19 @@ const PaginaVentas: FC = (): ReactElement => {
     mensaje: string,
     tono: "exito" | "error" = "exito",
   ) => {
-    setToast({ visible: true, titulo, mensaje, tono });
-    setTimeout(
-      () => setToast((anterior) => ({ ...anterior, visible: false })),
-      3200,
-    );
+    setToast({
+      visible: true,
+      titulo,
+      mensaje,
+      tono,
+    });
   };
 
-  const handleCompletarVenta = () => {
+  const handleCompletarVenta = async () => {
     setProcesando(true);
+
     try {
-      const venta = VentaService.registrarVenta({
+      const venta = await VentaService.registrarVenta({
         tipoOrden,
         ubicacion: ubicacion || undefined,
         cliente: cliente || undefined,
@@ -90,16 +94,22 @@ const PaginaVentas: FC = (): ReactElement => {
         "Venta Completada",
         `Ticket #${venta.ticket} registrado y stock actualizado.`,
       );
+
       limpiarCarrito();
       setUbicacion("");
       setCliente("");
-      refrescar();
-    } catch (error) {
+      await refrescar();
+    } catch (error: unknown) {
       const mensaje =
         error instanceof Error
           ? error.message
           : "Intenta nuevamente en unos segundos.";
-      mostrarToast("No se pudo completar la venta", mensaje, "error");
+
+      mostrarToast(
+        "No se pudo completar la venta",
+        mensaje,
+        "error",
+      );
     } finally {
       setProcesando(false);
     }
@@ -137,6 +147,7 @@ const PaginaVentas: FC = (): ReactElement => {
                 >
                   Terminal Activa • Caja Principal
                 </span>
+
                 <h1
                   className="mb-0 mt-1"
                   style={{
@@ -148,6 +159,7 @@ const PaginaVentas: FC = (): ReactElement => {
                 >
                   Punto de Venta
                 </h1>
+
                 <p
                   className="mb-0 mt-1"
                   style={{
@@ -155,11 +167,15 @@ const PaginaVentas: FC = (): ReactElement => {
                     color: "var(--admin-on-surface-variant)",
                   }}
                 >
-                  Selecciona productos del catálogo para registrar una orden. El
-                  stock se descuenta automáticamente al cobrar.
+                  Selecciona productos del catálogo para registrar una orden.
+                  El stock se descuenta automáticamente al cobrar.
                 </p>
               </div>
-              <OrderTypeToggle valor={tipoOrden} alCambiar={setTipoOrden} />
+
+              <OrderTypeToggle
+                valor={tipoOrden}
+                alCambiar={setTipoOrden}
+              />
             </div>
 
             <div className="d-flex flex-column gap-3">
@@ -169,6 +185,7 @@ const PaginaVentas: FC = (): ReactElement => {
                 descuentoActivo={descuentoPorcentaje > 0}
                 onAbrirDescuento={handleAbrirDescuento}
               />
+
               <CategoryPills
                 categorias={categorias}
                 activa={categoriaActiva}
