@@ -4,6 +4,11 @@ import type { Categoria } from "../../../data/Categoria";
 import * as ProductoModule from "../../../services/ProductoService";
 import * as CategoriaModule from "../../../services/CategoriaService";
 
+export interface CategoriaOpcion {
+  etiqueta: string;
+  total: number;
+}
+
 export const useProductosPOS = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categoriasLista, setCategoriasLista] = useState<string[]>([]);
@@ -23,6 +28,7 @@ export const useProductosPOS = () => {
 
       const catSrv: any =
         (CategoriaModule as any).CategoriaService ??
+        (CategoriaModule as any).catergoriaService ??
         (CategoriaModule as any).default ??
         CategoriaModule;
 
@@ -32,7 +38,11 @@ export const useProductosPOS = () => {
         ? resCategorias
         : [];
 
-      setCategoriasLista(listaCat.map((c) => c.nombre));
+      setCategoriasLista(
+        listaCat
+          .map((c) => c.nombre)
+          .filter((n): n is string => Boolean(n && n.trim() !== "")),
+      );
     } catch (error) {
       console.error("Error al cargar datos del POS:", error);
       setProductos([]);
@@ -44,12 +54,30 @@ export const useProductosPOS = () => {
     cargarDatos();
   }, [cargarDatos]);
 
-  const categorias = useMemo(() => {
-    const nombres = new Set<string>(categoriasLista);
-    productos.forEach((p) => {
-      if (p.categoria) nombres.add(p.categoria);
+  const categorias = useMemo<CategoriaOpcion[]>(() => {
+    const conteo = new Map<string, number>();
+
+    categoriasLista.forEach((nombre) => {
+      const limpio = nombre.trim();
+      if (limpio) conteo.set(limpio, 0);
     });
-    return ["Todos", ...Array.from(nombres)];
+
+    productos.forEach((p) => {
+      const cat = p.categoria?.trim();
+      if (cat) {
+        conteo.set(cat, (conteo.get(cat) ?? 0) + 1);
+      }
+    });
+
+    const opciones: CategoriaOpcion[] = [
+      { etiqueta: "Todos", total: productos.length },
+    ];
+
+    conteo.forEach((total, etiqueta) => {
+      opciones.push({ etiqueta, total });
+    });
+
+    return opciones;
   }, [categoriasLista, productos]);
 
   const productosFiltrados = useMemo(() => {
