@@ -1,125 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { Coffee } from 'lucide-react';
 import logoCortina from '../assets/Cafe.png';
+import { ProductoService } from '../services/ProductoService';
+import { catergoriaService } from '../services/CategoriaService';
+import type { Producto } from '../data/Producto';
 
 const CartaPrincipal: React.FC = () => {
-  // Pestañas principales superiores
-  const [seccionActiva, setSeccionActiva] = useState('Bebidas');
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [categoriasBD, setCategoriasBD] = useState<string[]>([]);
+  const [categoriaActiva, setCategoriaActiva] = useState<string>('Todo');
+  const [cargando, setCargando] = useState<boolean>(true);
 
-  // Subfiltro activo (Todo o una categoría específica)
-  const [subFiltroActivo, setSubFiltroActivo] = useState('Todo');
+  useEffect(() => {
+    const cargarCarta = async () => {
+      try {
+        setCargando(true);
+        const [listaProductos, listaCategorias] = await Promise.all([
+          ProductoService.obtenerProductosAPI(),
+          catergoriaService.listarCategorias(),
+        ]);
 
-  const seccionesPrincipales = ["Bebidas", "Alimentos", "Repostería"];
+        setProductos(Array.isArray(listaProductos) ? listaProductos : []);
+        
+        const nombresCat = (Array.isArray(listaCategorias) ? listaCategorias : [])
+          .map((c) => c.nombre?.trim())
+          .filter((nombre): nombre is string => Boolean(nombre));
 
-  // Subcategorías según la sección principal seleccionada
-  const subCategoriasPorSeccion: Record<string, string[]> = {
-    "Bebidas": ["Todo", "Bebidas Proteicas", "Frappuccinos", "Café Caliente", "Café Frío"],
-    "Alimentos": ["Todo", "Saladitos y Snacks", "Croissants"],
-    "Repostería": ["Todo", "Postres y Chessecakes", "Bombones"]
-  };
+        setCategoriasBD(nombresCat);
+      } catch (error) {
+        console.error('Error al cargar la carta desde el backend:', error);
+      } finally {
+        setCargando(false);
+      }
+    };
 
-  // Listado completo de productos adaptado a la estructura de la imagen
-  const catalogoProductos = [
-    // Bebidas Proteicas
-    {
-      seccion: "Bebidas",
-      subcategoria: "Bebidas Proteicas",
-      nombre: "BATIDO PROTEICO DE PLÁTANO Y MANÍ",
-      desc: "Ideal para ganar masa muscular: plátano, mantequilla de maní natural y leche.",
-      precio: "Desde S/ 15.00",
-      imagen: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      seccion: "Bebidas",
-      subcategoria: "Bebidas Proteicas",
-      nombre: "SMOOTHIE PROTEICO DE AVENA",
-      desc: "Energético con hojuelas de avena, leche descremada, frutos secos y plátano.",
-      precio: "Desde S/ 16.00",
-      imagen: "https://images.unsplash.com/photo-1628556270448-4d6934c43cb5?auto=format&fit=crop&w=600&q=80"
-    },
-    // Frappuccinos
-    {
-      seccion: "Bebidas",
-      subcategoria: "Frappuccinos",
-      nombre: "FRAPPUCCINO CAFÉ CLÁSICO",
-      desc: "Exquisita mezcla de café espresso, hielofrappé y leche cremosa con topping.",
-      precio: "Desde S/ 15.50",
-      imagen: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80"
-    },
-    // Café Caliente
-    {
-      seccion: "Bebidas",
-      subcategoria: "Café Caliente",
-      nombre: "CAPPUCCINO ARTESANAL",
-      desc: "Café expreso de altura con leche texturizada al vapor y fina espuma.",
-      precio: "Desde S/ 12.00",
-      imagen: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      seccion: "Bebidas",
-      subcategoria: "Café Caliente",
-      nombre: "CAFÉ LATTE VAINILLA",
-      desc: "Suave combinación de espresso, leche cremosa y un toque de vainilla.",
-      precio: "Desde S/ 13.50",
-      imagen: "https://images.unsplash.com/photo-1561882468-9110e03e0f78?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      seccion: "Bebidas",
-      subcategoria: "Café Caliente",
-      nombre: "ESPRESSO DOBLE DE ALTURA",
-      desc: "Grano seleccionado 100% peruano con notas intensas y cuerpo robusto.",
-      precio: "Desde S/ 9.00",
-      imagen: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=600&q=80"
-    },
-    // Café Frío
-    {
-      seccion: "Bebidas",
-      subcategoria: "Café Frío",
-      nombre: "CAFÉ LATTE HELADO",
-      desc: "Café espresso peruano sobre cubos de hielo con leche fría.",
-      precio: "Desde S/ 13.00",
-      imagen: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80"
-    },
-    // Alimentos / Croissants
-    {
-      seccion: "Alimentos",
-      subcategoria: "Croissants",
-      nombre: "CROISSANT DE POLLO Y PALTA",
-      desc: "Croissant de mantequilla recién horneado con pollo y láminas de palta.",
-      precio: "Desde S/ 19.00",
-      imagen: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80"
-    },
-    // Repostería
-    {
-      seccion: "Repostería",
-      subcategoria: "Postres y Chessecakes",
-      nombre: "CHEESECAKE DE FRUTOS ROJOS",
-      desc: "Base crujiente de galleta, crema de queso suave y coulis artesanal.",
-      precio: "Desde S/ 16.00",
-      imagen: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      seccion: "Repostería",
-      subcategoria: "Bombones",
-      nombre: "BOMBÓN DE LÚCUMA",
-      desc: "Postre artesanal a base de lúcuma peruana con suave cobertura de chocolate.",
-      precio: "Desde S/ 14.00",
-      imagen: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=600&q=80"
+    cargarCarta();
+  }, []);
+
+  // Unimos las categorías de la BD con las que tengan los productos activos
+  const categoriasDisponibles = useMemo(() => {
+    const setCats = new Set<string>(categoriasBD);
+    productos.forEach((p) => {
+      if (p.categoria && p.categoria.trim() !== '') {
+        setCats.add(p.categoria.trim());
+      }
+    });
+    return ['Todo', ...Array.from(setCats)];
+  }, [categoriasBD, productos]);
+
+  const productosFiltrados = useMemo(() => {
+    if (categoriaActiva === 'Todo') return productos;
+    return productos.filter((prod) => prod.categoria === categoriaActiva);
+  }, [productos, categoriaActiva]);
+
+  const categoriasAMostrar = useMemo(() => {
+    if (categoriaActiva === 'Todo') {
+      return categoriasDisponibles.filter((c) => c !== 'Todo');
     }
-  ];
-
-  // Filtrar productos según la pestaña principal y el subfiltro seleccionado
-  const productosFiltrados = catalogoProductos.filter(prod => {
-    const coincideSeccion = prod.seccion === seccionActiva;
-    const coincideSub = subFiltroActivo === 'Todo' || prod.subcategoria === subFiltroActivo;
-    return coincideSeccion && coincideSub;
-  });
-
-  // Agrupar por subcategorías para mostrarlos en bloques ordenados si se selecciona "Todo"
-  const subcategoriasDisponibles = subCategoriasPorSeccion[seccionActiva] || ["Todo"];
-  const subcatsAMostrar = subFiltroActivo === 'Todo' 
-    ? subcategoriasDisponibles.filter(sc => sc !== 'Todo') 
-    : [subFiltroActivo];
+    return [categoriaActiva];
+  }, [categoriaActiva, categoriasDisponibles]);
 
   return (
     <div style={{ backgroundColor: '#fcfbfa', color: '#4a403b', minHeight: '100vh', fontFamily: 'sans-serif' }}>
@@ -127,28 +67,6 @@ const CartaPrincipal: React.FC = () => {
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
 
       <style>{`
-        .nav-tab-custom {
-          background: none;
-          border: none;
-          font-weight: 600;
-          color: #7a6b63;
-          padding: 0.5rem 0;
-          position: relative;
-          transition: color 0.3s ease;
-        }
-        .nav-tab-custom.active {
-          color: #211c18;
-        }
-        .nav-tab-custom.active::after {
-          content: '';
-          position: absolute;
-          bottom: -4px;
-          left: 0;
-          width: 100%;
-          height: 3px;
-          background-color: #211c18;
-          border-radius: 2px;
-        }
         .pill-filter {
           background-color: #f2eae3;
           border: 1px solid #e8dfd8;
@@ -179,12 +97,12 @@ const CartaPrincipal: React.FC = () => {
           height: 110px;
           border-radius: 50%;
           overflow: hidden;
-          background-color: #211c18;
+          background-color: #f2eae3;
           margin: 0 auto;
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 3px solid #f2eae3;
+          border: 3px solid #e8dfd8;
         }
         .no-scrollbar::-webkit-scrollbar {
           display: none;
@@ -195,7 +113,7 @@ const CartaPrincipal: React.FC = () => {
         }
       `}</style>
 
-      {/* --- NAVBAR IDÉNTICO AL CLIENTE HOME --- */}
+      {/* --- NAVBAR --- */}
       <nav className="navbar navbar-expand-lg sticky-top shadow-sm py-3" style={{ backgroundColor: '#211c18', borderBottom: '1px solid #3a322b' }}>
         <div className="container-fluid px-4">
           <button className="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
@@ -203,8 +121,6 @@ const CartaPrincipal: React.FC = () => {
           </button>
 
           <div className="collapse navbar-collapse justify-content-between align-items-center w-100" id="navbarContent">
-            
-            {/* 1. IZQUIERDA: Enlaces de navegación */}
             <ul className="navbar-nav gap-4 mb-2 mb-lg-0">
               <li className="nav-item">
                 <Link className="nav-link text-white-50 fw-semibold tracking-wider text-uppercase small" to="/">Inicio</Link>
@@ -217,7 +133,6 @@ const CartaPrincipal: React.FC = () => {
               </li>
             </ul>
 
-            {/* 2. CENTRO: Logo y Marca */}
             <div className="navbar-brand text-center m-0 d-flex align-items-center gap-2 position-absolute start-50 translate-middle-x">
               <Link to="/" className="text-decoration-none d-flex align-items-center gap-2">
                 <img 
@@ -229,7 +144,6 @@ const CartaPrincipal: React.FC = () => {
               </Link>
             </div>
 
-            {/* 3. DERECHA */}
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
               <li className="nav-item">
                 <span className="text-white-50 small fw-semibold px-3 py-2 rounded-pill" style={{ backgroundColor: 'rgba(255,255,255,0.08)', letterSpacing: '1px' }}>
@@ -237,97 +151,90 @@ const CartaPrincipal: React.FC = () => {
                 </span>
               </li>
             </ul>
-
           </div>
         </div>
       </nav>
 
-      {/* --- CONTENIDO DE LA CARTA CON DISEÑO ESTILO STARBUCKS --- */}
+      {/* --- CONTENIDO DE LA CARTA CONECTADO A SUPABASE Y CLOUDINARY --- */}
       <div className="container py-5">
-        
-        {/* Título de la sección */}
         <h1 className="fw-bold fs-2 mb-4" style={{ color: '#211c18' }}>Menú</h1>
 
-        {/* Pestañas Principales (Bebidas, Alimentos, Repostería) */}
-        <div className="d-flex gap-4 border-bottom pb-2 mb-4 overflow-x-auto no-scrollbar">
-          {seccionesPrincipales.map((sec) => (
+        {/* Píldoras de Categorías existentes en la Base de Datos */}
+        <div className="d-flex align-items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-5 border-bottom">
+          {categoriasDisponibles.map((cat) => (
             <button
-              key={sec}
-              onClick={() => {
-                setSeccionActiva(sec);
-                setSubFiltroActivo('Todo'); // Reiniciar subfiltro al cambiar de sección
-              }}
-              className={`nav-tab-custom fs-5 ${seccionActiva === sec ? 'active' : ''}`}
+              key={cat}
+              onClick={() => setCategoriaActiva(cat)}
+              className={`btn rounded-pill px-4 py-2 small fw-semibold pill-filter ${categoriaActiva === cat ? 'active' : ''}`}
             >
-              {sec}
+              {cat}
             </button>
           ))}
         </div>
 
-        {/* Subfiltros en Píldoras deslizables horizontalmente */}
-        <div className="d-flex align-items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-5">
-          {subCategoriasPorSeccion[seccionActiva]?.map((sub) => (
-            <button
-              key={sub}
-              onClick={() => setSubFiltroActivo(sub)}
-              className={`btn rounded-pill px-4 py-2 small fw-semibold pill-filter ${subFiltroActivo === sub ? 'active' : ''}`}
-            >
-              {sub}
-            </button>
-          ))}
-        </div>
-
-        {/* Listado de Productos Agrupados por Subcategorías */}
-        {subcatsAMostrar.map((subcatName) => {
-          const itemsDeEstaSub = productosFiltrados.filter(p => p.subcategoria === subcatName);
-          
-          if (itemsDeEstaSub.length === 0) return null;
-
-          return (
-            <div key={subcatName} className="mb-5">
-              <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                <h3 className="fw-bold h4 m-0" style={{ color: '#211c18' }}>{subcatName}</h3>
-                <i className="bi bi-chevron-down text-muted"></i>
-              </div>
-
-              <div className="row g-4">
-                {itemsDeEstaSub.map((prod, index) => (
-                  <div key={index} className="col-md-6 col-lg-4 col-xl-3">
-                    <div className="circular-card p-4 text-center h-100 d-flex flex-column justify-content-between">
-                      <div>
-                        {/* Contenedor Circular de la Imagen */}
-                        <div className="img-circle-container mb-3 shadow-sm">
-                          <img 
-                            src={prod.imagen} 
-                            alt={prod.nombre} 
-                            className="w-100 h-100 object-fit-cover" 
-                          />
-                        </div>
-                        <h5 className="fw-bold small mb-2 text-uppercase" style={{ color: '#211c18', minHeight: '38px' }}>
-                          {prod.nombre}
-                        </h5>
-                        <p className="text-muted small mb-3" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
-                          {prod.desc}
-                        </p>
-                      </div>
-
-                      <div className="pt-2 border-top mt-auto">
-                        <span className="fw-bold small" style={{ color: '#006241' }}>{prod.precio}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-
-        {productosFiltrados.length === 0 && (
+        {cargando ? (
           <div className="text-center py-5">
-            <p className="text-muted">No hay productos disponibles en esta categoría por el momento.</p>
+            <p className="text-muted">Cargando productos de la carta...</p>
           </div>
-        )}
+        ) : (
+          <>
+            {categoriasAMostrar.map((catName) => {
+              const itemsDeEstaCategoria = productosFiltrados.filter((p) => p.categoria === catName);
 
+              if (itemsDeEstaCategoria.length === 0) return null;
+
+              return (
+                <div key={catName} className="mb-5">
+                  <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                    <h3 className="fw-bold h4 m-0" style={{ color: '#211c18' }}>{catName}</h3>
+                    <i className="bi bi-chevron-down text-muted"></i>
+                  </div>
+
+                  <div className="row g-4">
+                    {itemsDeEstaCategoria.map((prod) => (
+                      <div key={prod.id} className="col-md-6 col-lg-4 col-xl-3">
+                        <div className="circular-card p-4 text-center h-100 d-flex flex-column justify-content-between">
+                          <div>
+                            {/* Contenedor Circular con imagen de Cloudinary o icono de respaldo */}
+                            <div className="img-circle-container mb-3 shadow-sm">
+                              {prod.image_url ? (
+                                <img 
+                                  src={prod.image_url} 
+                                  alt={prod.nombre} 
+                                  className="w-100 h-100 object-fit-cover" 
+                                />
+                              ) : (
+                                <Coffee size={36} color="#5c4033" />
+                              )}
+                            </div>
+                            <h5 className="fw-bold small mb-2 text-uppercase" style={{ color: '#211c18', minHeight: '38px' }}>
+                              {prod.nombre}
+                            </h5>
+                            <p className="text-muted small mb-3" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
+                              {prod.categoria}
+                            </p>
+                          </div>
+
+                          <div className="pt-2 border-top mt-auto">
+                            <span className="fw-bold small" style={{ color: '#006241' }}>
+                              S/ {Number(prod.precioVenta).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+
+            {productosFiltrados.length === 0 && (
+              <div className="text-center py-5">
+                <p className="text-muted">No hay productos disponibles en esta categoría por el momento.</p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
