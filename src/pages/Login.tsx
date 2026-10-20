@@ -43,6 +43,7 @@ const Login = () => {
         correo: email.trim().toLowerCase(),
         password: password,
       });
+      
 
       // Guardar el token JWT recibido del backend
       localStorage.setItem("collins_token", respuesta.access_token);

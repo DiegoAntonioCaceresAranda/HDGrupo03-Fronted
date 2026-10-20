@@ -23,6 +23,7 @@ const PaginaVentas: FC = (): ReactElement => {
   const {
     productosFiltrados,
     categorias,
+    nombresCategorias,
     categoriaActiva,
     setCategoriaActiva,
     busqueda,
@@ -99,7 +100,7 @@ const PaginaVentas: FC = (): ReactElement => {
       setUbicacion("");
       setCliente("");
       await refrescar();
-    } catch (error: unknown) {
+    } catch (error) {
       const mensaje =
         error instanceof Error
           ? error.message
@@ -195,6 +196,7 @@ const PaginaVentas: FC = (): ReactElement => {
 
             <ProductGrid
               productos={productosFiltrados}
+              nombresCategorias={nombresCategorias}
               onAgregar={agregarProducto}
             />
           </section>

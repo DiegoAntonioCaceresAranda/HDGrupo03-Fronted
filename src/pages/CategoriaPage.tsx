@@ -3,15 +3,39 @@ import CategoriaForm from "../components/Categoria/CategoriasForm";
 import { catergoriaService } from "../services/CategoriaService";
 import type { Categoria } from "../data/Categoria";
 
+// Saca el mensaje de error que devuelve FastAPI (detail)
+const mensajeError = (err: any, porDefecto: string): string => {
+  const detalle = err?.response?.data?.detail;
+  return typeof detalle === "string" ? detalle : porDefecto;
+};
+
 export const CategoriasPage = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+
+  // Modal
   const [showModal, setShowModal] = useState(false);
-  const [categoriaEditar, setCategoriaEditar] = useState<Categoria | null>(null);
+  const [errorModal, setErrorModal] = useState("");
+
+  // Categoría a editar
+  const [categoriaEditar, setCategoriaEditar] = useState<Categoria | null>(
+    null,
+  );
+
+  // Buscador
   const [busquedad, setBusqueda] = useState("");
 
+  // READ
   const cargarCategorias = async () => {
-    const datos = await catergoriaService.listarCategorias();
-    setCategorias(datos);
+    try {
+      setError("");
+      setCategorias(await catergoriaService.listarCategorias());
+    } catch {
+      setError("No se pudieron cargar las categorías. ¿Está corriendo FastAPI?");
+    } finally {
+      setCargando(false);
+    }
   };
 
   useEffect(() => {
@@ -20,30 +44,42 @@ export const CategoriasPage = () => {
 
   const abrirNuevaCategoria = () => {
     setCategoriaEditar(null);
+    setErrorModal("");
     setShowModal(true);
   };
 
   const editarCategoria = (categoria: Categoria) => {
     setCategoriaEditar(categoria);
+    setErrorModal("");
     setShowModal(true);
   };
 
+  const cerrarModal = () => {
+    setShowModal(false);
+    setCategoriaEditar(null);
+    setErrorModal("");
+  };
+
+  // CREATE / UPDATE
   const guardarCategoria = async (datos: Omit<Categoria, "id">) => {
     try {
+      setErrorModal("");
+
       if (categoriaEditar) {
         await catergoriaService.actualizarCategoria(categoriaEditar.id, datos);
       } else {
         await catergoriaService.crearCategoria(datos);
       }
+
       await cargarCategorias();
-      setShowModal(false);
-      setCategoriaEditar(null);
-    } catch (error) {
-      console.error("Error al guardar categoría:", error);
-      alert("No se pudo guardar la categoría. Verifica que el nombre no esté repetido.");
+      cerrarModal();
+    } catch (err) {
+      // Ejemplo: 409 "La categoría ya está registrada"
+      setErrorModal(mensajeError(err, "No se pudo guardar la categoría."));
     }
   };
 
+  // DELETE
   const eliminarCategoria = async (id: number, nombre: string) => {
     const confirmar = window.confirm(
       `¿Estás seguro de que deseas eliminar la categoría "${nombre}"?`,
@@ -53,12 +89,17 @@ export const CategoriasPage = () => {
     try {
       await catergoriaService.eliminarCategoria(id);
       await cargarCategorias();
-    } catch (error) {
-      console.error("Error al eliminar categoría:", error);
-      alert("No se pudo eliminar la categoría (puede tener productos asociados).");
+    } catch (err) {
+      alert(
+        mensajeError(
+          err,
+          "No se pudo eliminar la categoría. Puede tener productos asociados.",
+        ),
+      );
     }
   };
 
+  // SEARCH
   const categoriasFiltradas = categorias.filter((categoria) =>
     categoria.nombre.toLowerCase().includes(busquedad.toLowerCase()),
   );
@@ -87,8 +128,11 @@ export const CategoriasPage = () => {
         </div>
       </div>
 
+      {error && <div className="alert alert-danger">{error}</div>}
+
       {/* ================= MÉTRICAS Y BUSCADOR ================= */}
       <div className="row mb-4">
+        {/* Métrica */}
         <div className="col-md-5 d-flex gap-3 mb-3 mb-md-0">
           <div className="card shadow-sm flex-fill border-0 rounded-4">
             <div className="card-body py-3 d-flex align-items-center">
@@ -108,6 +152,7 @@ export const CategoriasPage = () => {
           </div>
         </div>
 
+        {/* Buscador */}
         <div className="col-md-7 d-flex">
           <div className="card shadow-sm border-0 rounded-4 w-100">
             <div className="card-body py-2 d-flex align-items-center gap-3">
@@ -142,7 +187,13 @@ export const CategoriasPage = () => {
               </tr>
             </thead>
             <tbody>
-              {categoriasFiltradas.length > 0 ? (
+              {cargando ? (
+                <tr>
+                  <td colSpan={3} className="text-center py-4 text-muted">
+                    Cargando categorías...
+                  </td>
+                </tr>
+              ) : categoriasFiltradas.length > 0 ? (
                 categoriasFiltradas.map((categoria, index) => (
                   <tr key={categoria.id}>
                     <td className="ps-4 text-muted">{index + 1}</td>
@@ -168,6 +219,7 @@ export const CategoriasPage = () => {
                   </tr>
                 ))
               ) : (
+                /* SIN RESULTADOS */
                 <tr>
                   <td colSpan={3} className="text-center py-4 text-muted">
                     No se encontraron categorías.
@@ -190,6 +242,7 @@ export const CategoriasPage = () => {
         >
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 rounded-4 shadow">
+              {/* HEADER */}
               <div className="modal-header border-bottom-0">
                 <h5 className="modal-title fw-bold text-cafe">
                   <i className="bi bi-tags me-2"></i>
@@ -198,28 +251,30 @@ export const CategoriasPage = () => {
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={() => {
-                    setShowModal(false);
-                    setCategoriaEditar(null);
-                  }}
+                  onClick={cerrarModal}
                 ></button>
               </div>
 
+              {/* FORMULARIO */}
               <div className="modal-body">
                 <CategoriaForm
                   categoria={categoriaEditar}
                   onSave={guardarCategoria}
                 />
+
+                {errorModal && (
+                  <div className="alert alert-danger mt-3 mb-0">
+                    {errorModal}
+                  </div>
+                )}
               </div>
 
+              {/* FOOTER */}
               <div className="modal-footer border-top-0">
                 <button
                   type="button"
                   className="btn btn-light rounded-pill px-4"
-                  onClick={() => {
-                    setShowModal(false);
-                    setCategoriaEditar(null);
-                  }}
+                  onClick={cerrarModal}
                 >
                   Cancelar
                 </button>

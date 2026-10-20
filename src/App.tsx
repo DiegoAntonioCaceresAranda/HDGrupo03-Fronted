@@ -1,6 +1,7 @@
 import type { FC, ReactElement } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import FormularioTem from './FormularioTem';
+import FormularioTem from "./FormularioTem";
+import ProtectedRoute from "./components/ProtectedRoutes";
 
 import Login from "./pages/Login";
 import PaginaDashboard from "./pages/PaginaDashboard";
@@ -20,24 +21,26 @@ const App: FC = (): ReactElement => (
       {/* Cliente */}
       <Route path="/" element={<ClienteHome />} />
       <Route path="/carta-principal" element={<CartaPrincipal />} />
-      
+
       {/* Login */}
       <Route path="/login" element={<Login />} />
 
       {/* Admin */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<PaginaDashboard />} />
-        <Route path="ventas" element={<PaginaVentas />} />
-        <Route path="products" element={<ProductosPage />} />
-        <Route path="categories" element={<CategoriasPage />} />
-        <Route path="reports" element={<PaginaReportes />} />
-        <Route path="usuarios" element={<UsuarioPage />} />
-        <Route path="roles" element={<RolesPage />} />
+      <Route element={<ProtectedRoute/>}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<PaginaDashboard />} />
+          <Route path="ventas" element={<PaginaVentas />} />
+          <Route path="products" element={<ProductosPage />} />
+          <Route path="categories" element={<CategoriasPage />} />
+          <Route path="reports" element={<PaginaReportes />} />
+          <Route path="usuarios" element={<UsuarioPage />} />
+          <Route path="roles" element={<RolesPage />} />
+        </Route>
       </Route>
 
       {/* Cloudinary */}
-        <Route path="/admin/formulario-temporal" element={<FormularioTem />} />
-      </Routes>
+      <Route path="/admin/formulario-temporal" element={<FormularioTem />} />
+    </Routes>
   </BrowserRouter>
 );
 

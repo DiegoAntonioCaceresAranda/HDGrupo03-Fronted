@@ -2,13 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Coffee } from 'lucide-react';
 import logoCortina from '../assets/Cafe.png';
-import { ProductoService } from '../services/ProductoService';
+import { ProductoService, type Producto } from '../services/ProductoService';
 import { catergoriaService } from '../services/CategoriaService';
-import type { Producto } from '../data/Producto';
+import type { Categoria } from '../data/Categoria';
 
 const CartaPrincipal: React.FC = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [categoriasBD, setCategoriasBD] = useState<string[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [categoriaActiva, setCategoriaActiva] = useState<string>('Todo');
   const [cargando, setCargando] = useState<boolean>(true);
 
@@ -17,17 +17,12 @@ const CartaPrincipal: React.FC = () => {
       try {
         setCargando(true);
         const [listaProductos, listaCategorias] = await Promise.all([
-          ProductoService.obtenerProductosAPI(),
+          ProductoService.listarProductos(),
           catergoriaService.listarCategorias(),
         ]);
 
         setProductos(Array.isArray(listaProductos) ? listaProductos : []);
-        
-        const nombresCat = (Array.isArray(listaCategorias) ? listaCategorias : [])
-          .map((c) => c.nombre?.trim())
-          .filter((nombre): nombre is string => Boolean(nombre));
-
-        setCategoriasBD(nombresCat);
+        setCategorias(Array.isArray(listaCategorias) ? listaCategorias : []);
       } catch (error) {
         console.error('Error al cargar la carta desde el backend:', error);
       } finally {
@@ -38,21 +33,21 @@ const CartaPrincipal: React.FC = () => {
     cargarCarta();
   }, []);
 
-  // Unimos las categorías de la BD con las que tengan los productos activos
+  const nombreCategoria = (idCat: number | null): string => {
+    return categorias.find((c) => c.id === idCat)?.nombre?.trim() || 'Sin categoría';
+  };
+
   const categoriasDisponibles = useMemo(() => {
-    const setCats = new Set<string>(categoriasBD);
-    productos.forEach((p) => {
-      if (p.categoria && p.categoria.trim() !== '') {
-        setCats.add(p.categoria.trim());
-      }
-    });
-    return ['Todo', ...Array.from(setCats)];
-  }, [categoriasBD, productos]);
+    const nombres = categorias
+      .map((c) => c.nombre?.trim())
+      .filter((n): n is string => Boolean(n));
+    return ['Todo', ...Array.from(new Set(nombres))];
+  }, [categorias]);
 
   const productosFiltrados = useMemo(() => {
     if (categoriaActiva === 'Todo') return productos;
-    return productos.filter((prod) => prod.categoria === categoriaActiva);
-  }, [productos, categoriaActiva]);
+    return productos.filter((prod) => nombreCategoria(prod.id_categoria) === categoriaActiva);
+  }, [productos, categoriaActiva, categorias]);
 
   const categoriasAMostrar = useMemo(() => {
     if (categoriaActiva === 'Todo') {
@@ -113,7 +108,6 @@ const CartaPrincipal: React.FC = () => {
         }
       `}</style>
 
-      {/* --- NAVBAR --- */}
       <nav className="navbar navbar-expand-lg sticky-top shadow-sm py-3" style={{ backgroundColor: '#211c18', borderBottom: '1px solid #3a322b' }}>
         <div className="container-fluid px-4">
           <button className="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
@@ -155,11 +149,9 @@ const CartaPrincipal: React.FC = () => {
         </div>
       </nav>
 
-      {/* --- CONTENIDO DE LA CARTA CONECTADO A SUPABASE Y CLOUDINARY --- */}
       <div className="container py-5">
         <h1 className="fw-bold fs-2 mb-4" style={{ color: '#211c18' }}>Menú</h1>
 
-        {/* Píldoras de Categorías existentes en la Base de Datos */}
         <div className="d-flex align-items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-5 border-bottom">
           {categoriasDisponibles.map((cat) => (
             <button
@@ -179,7 +171,9 @@ const CartaPrincipal: React.FC = () => {
         ) : (
           <>
             {categoriasAMostrar.map((catName) => {
-              const itemsDeEstaCategoria = productosFiltrados.filter((p) => p.categoria === catName);
+              const itemsDeEstaCategoria = productosFiltrados.filter(
+                (p) => nombreCategoria(p.id_categoria) === catName
+              );
 
               if (itemsDeEstaCategoria.length === 0) return null;
 
@@ -192,10 +186,9 @@ const CartaPrincipal: React.FC = () => {
 
                   <div className="row g-4">
                     {itemsDeEstaCategoria.map((prod) => (
-                      <div key={prod.id} className="col-md-6 col-lg-4 col-xl-3">
+                      <div key={prod.id_producto} className="col-md-6 col-lg-4 col-xl-3">
                         <div className="circular-card p-4 text-center h-100 d-flex flex-column justify-content-between">
                           <div>
-                            {/* Contenedor Circular con imagen de Cloudinary o icono de respaldo */}
                             <div className="img-circle-container mb-3 shadow-sm">
                               {prod.image_url ? (
                                 <img 
@@ -211,13 +204,13 @@ const CartaPrincipal: React.FC = () => {
                               {prod.nombre}
                             </h5>
                             <p className="text-muted small mb-3" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
-                              {prod.categoria}
+                              {catName}
                             </p>
                           </div>
 
                           <div className="pt-2 border-top mt-auto">
                             <span className="fw-bold small" style={{ color: '#006241' }}>
-                              S/ {Number(prod.precioVenta).toFixed(2)}
+                              S/ {Number(prod.precio_venta).toFixed(2)}
                             </span>
                           </div>
                         </div>

@@ -1,70 +1,52 @@
 import api from "../config/axios";
-import categoriesMock, { type Categoria } from "../data/Categoria";
+import { type Categoria } from "../data/Categoria";
 
-const StorageKey = "categorias";
-
-interface CategoriaBackend {
-  id_categoria: number;
+// Lo que devuelve FastAPI
+interface CategoriaApi {
+  id_categoria?: number;
+  id?: number;
   nombre: string;
 }
 
-const mapearCategoria = (c: CategoriaBackend): Categoria => ({
-  id: c.id_categoria,
-  nombre: c.nombre,
-});
+// Convierte a la forma que ya usa tu frontend: { id, nombre }
+const aCategoria = (c: CategoriaApi): Categoria =>
+  ({
+    id: c.id_categoria ?? c.id,
+    nombre: c.nombre,
+  }) as Categoria;
 
-export const obtenerCategoriasCache = (): Categoria[] => {
-  const data = localStorage.getItem(StorageKey);
-  return data ? JSON.parse(data) : categoriesMock;
-};
-
-// READ (Desde FastAPI / Supabase)
+// READ
 const listarCategorias = async (): Promise<Categoria[]> => {
-  try {
-    const { data } = await api.get<CategoriaBackend[]>("/categorias/");
-    const categorias = data.map(mapearCategoria);
-    localStorage.setItem(StorageKey, JSON.stringify(categorias));
-    return categorias;
-  } catch (error) {
-    console.error("Error al listar categorías desde el backend:", error);
-    return obtenerCategoriasCache();
-  }
+  const { data } = await api.get<CategoriaApi[]>("api/categorias/");
+  return data.map(aCategoria);
 };
 
 // CREATE
 const crearCategoria = async (
   categoria: Omit<Categoria, "id">,
 ): Promise<Categoria> => {
-  const { data } = await api.post<CategoriaBackend>("/categorias/", {
-    nombre: categoria.nombre,
-  });
-  const nueva = mapearCategoria(data);
-  const actuales = obtenerCategoriasCache();
-  localStorage.setItem(StorageKey, JSON.stringify([...actuales, nueva]));
-  return nueva;
+  const { data } = await api.post<CategoriaApi>("api/categorias/", categoria);
+  return aCategoria(data);
 };
 
 // UPDATE
 const actualizarCategoria = async (
   id: number,
   datos: Omit<Categoria, "id">,
-): Promise<Categoria | null> => {
-  const { data } = await api.put<CategoriaBackend>(`/categorias/${id}`, {
-    nombre: datos.nombre,
-  });
-  return mapearCategoria(data);
+): Promise<Categoria> => {
+  const { data } = await api.put<CategoriaApi>(`api/categorias/${id}`, datos);
+  return aCategoria(data);
 };
 
 // DELETE
-const eliminarCategoria = async (id: number): Promise<boolean> => {
-  await api.delete(`/categorias/${id}`);
-  return true;
+const eliminarCategoria = async (id: number): Promise<void> => {
+  await api.delete(`api/categorias/${id}`);
 };
 
-
+// Mantengo el nombre "catergoriaService" (con el typo) para no romper tus imports
 export const catergoriaService = {
-    listarCategorias,
-    crearCategoria,
-    actualizarCategoria,
-    eliminarCategoria
+  listarCategorias,
+  crearCategoria,
+  actualizarCategoria,
+  eliminarCategoria,
 };

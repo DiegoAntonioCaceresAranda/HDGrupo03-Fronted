@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Coffee } from 'lucide-react';
 import logoCortina from '../assets/Cafe.png';
-import { ProductoService } from '../services/ProductoService';
-import type { Producto } from '../data/Producto';
+import { ProductoService, type Producto } from '../services/ProductoService';
+import { catergoriaService } from '../services/CategoriaService';
+import type { Categoria } from '../data/Categoria';
 
 const ClienteHome: React.FC = () => {
   const banners = [
@@ -29,6 +30,7 @@ const ClienteHome: React.FC = () => {
 
   const [currentBanner, setCurrentBanner] = useState(0);
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,18 +40,26 @@ const ClienteHome: React.FC = () => {
     return () => clearInterval(interval);
   }, [banners.length]);
 
-  // Cargar productos reales desde FastAPI + Supabase + Cloudinary
+  // Cargar productos y categorías reales desde FastAPI + Supabase + Cloudinary
   useEffect(() => {
-    const cargarProductosDestacados = async () => {
+    const cargarDatos = async () => {
       try {
-        const data = await ProductoService.obtenerProductosAPI();
-        setProductos(Array.isArray(data) ? data : []);
+        const [listaProductos, listaCategorias] = await Promise.all([
+          ProductoService.listarProductos(),
+          catergoriaService.listarCategorias(),
+        ]);
+        setProductos(Array.isArray(listaProductos) ? listaProductos : []);
+        setCategorias(Array.isArray(listaCategorias) ? listaCategorias : []);
       } catch (error) {
         console.error("Error al cargar productos en el Home:", error);
       }
     };
-    cargarProductosDestacados();
+    cargarDatos();
   }, []);
+
+  const nombreCategoria = (idCat: number | null): string => {
+    return categorias.find((c) => c.id === idCat)?.nombre || 'Especialidad';
+  };
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -313,7 +323,7 @@ const ClienteHome: React.FC = () => {
             style={{ scrollBehavior: 'smooth' }}
           >
             {productos.map((prod) => (
-              <div key={prod.id} className="product-card card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+              <div key={prod.id_producto} className="product-card card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                 <div
                   className="d-flex align-items-center justify-content-center"
                   style={{ height: '200px', overflow: 'hidden', backgroundColor: '#f2eae3' }}
@@ -331,7 +341,7 @@ const ClienteHome: React.FC = () => {
                 <div className="card-body p-4 d-flex flex-column justify-content-between" style={{ minHeight: '180px' }}>
                   <div>
                     <span className="text-uppercase fw-bold d-block mb-1" style={{ fontSize: '0.7rem', color: '#b08968' }}>
-                      {prod.categoria}
+                      {nombreCategoria(prod.id_categoria)}
                     </span>
                     <h5 className="fw-bold h6 mb-2 text-uppercase" style={{ color: '#5c4033' }}>{prod.nombre}</h5>
                     <p className="text-muted small mb-3" style={{ fontSize: '0.85rem' }}>
@@ -339,7 +349,7 @@ const ClienteHome: React.FC = () => {
                   </div>
                   <div className="d-flex align-items-center justify-content-between mt-auto pt-2 border-top">
                     <span className="fw-bold fs-6" style={{ color: '#b08968' }}>
-                      S/ {Number(prod.precioVenta).toFixed(2)}
+                      S/ {Number(prod.precio_venta).toFixed(2)}
                     </span>
                   </div>
                 </div>

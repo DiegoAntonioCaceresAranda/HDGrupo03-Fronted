@@ -1,30 +1,62 @@
 import { useEffect, useState } from "react";
-import { ProductoService, type ProductoPayload } from "../services/ProductoService";
+
+import {
+  ProductoService,
+  type Producto,
+  type ProductoForm,
+} from "../services/ProductoService";
 import ProductosForm from "../components/Producto/ProductosForm";
-import { type Producto } from "../data/Producto";
 import { catergoriaService } from "../services/CategoriaService";
 import { type Categoria } from "../data/Categoria";
 
 export const ProductosPage = () => {
+  // =========================
+  // ESTADOS
+  // =========================
+
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+
   const [showModal, setShowModal] = useState(false);
   const [productoEditar, setProductoEditar] = useState<Producto | null>(null);
   const [busqueda, setBusqueda] = useState("");
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [categoriaFiltro, setCategoriaFiltro] = useState("Todas las categorías");
 
-  const cargarDatos = async () => {
-    const [listaCategorias, listaProductos] = await Promise.all([
-      catergoriaService.listarCategorias(),
-      ProductoService.obtenerProductosAPI(),
-    ]);
-    setCategorias(listaCategorias);
-    setProductos(listaProductos);
+  // TEMPORAL: las categorías aún vienen de localStorage
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+
+  // "" = todas las categorías, si no, el id de la categoría
+  const [categoriaFiltro, setCategoriaFiltro] = useState("");
+
+  // =========================
+  // CARGAR PRODUCTOS DESDE FASTAPI
+  // =========================
+
+  const cargarProductos = async () => {
+    try {
+      setError("");
+      setProductos(await ProductoService.listarProductos());
+    } catch {
+      setError("No se pudieron cargar los productos. ¿Está corriendo FastAPI?");
+    } finally {
+      setCargando(false);
+    }
   };
 
   useEffect(() => {
-    cargarDatos();
+    cargarProductos();
+    catergoriaService
+      .listarCategorias()
+      .then(setCategorias)
+      .catch(() => setError("No se pudieron cargar las categorías."));
   }, []);
+
+  const nombreCategoria = (id: number | null): string =>
+    categorias.find((c) => c.id === id)?.nombre ?? "Sin categoría";
+
+  // =========================
+  // MODAL
+  // =========================
 
   const abrirNuevoProducto = () => {
     setProductoEditar(null);
@@ -41,47 +73,63 @@ export const ProductosPage = () => {
     setProductoEditar(null);
   };
 
-  const guardarProducto = async (datos: ProductoPayload) => {
-    try {
-      if (productoEditar) {
-        await ProductoService.actualizarProducto(productoEditar.id, datos);
-      } else {
-        await ProductoService.crearProducto(datos);
-      }
-      await cargarDatos();
-      cerrarModal();
-    } catch (error) {
-      console.error("Error al guardar producto:", error);
-      alert("Ocurrió un error al guardar el producto en el servidor.");
+  // =========================
+  // GUARDAR (crear o editar)
+  // Si falla, el error sube al formulario y se muestra en el modal
+  // =========================
+
+  const guardarProducto = async (datos: ProductoForm) => {
+    if (productoEditar) {
+      await ProductoService.actualizarProducto(
+        productoEditar.id_producto,
+        datos,
+      );
+    } else {
+      await ProductoService.crearProducto(datos);
     }
+
+    await cargarProductos();
+    cerrarModal();
   };
 
+  // =========================
+  // ELIMINAR
+  // =========================
+
   const eliminarProducto = async (id: number, nombre: string) => {
-    if (window.confirm(`¿Estás seguro de que deseas eliminar: ${nombre}?`)) {
-      try {
-        await ProductoService.eliminarProducto(id);
-        await cargarDatos();
-      } catch (error) {
-        console.error("Error al eliminar producto:", error);
-        alert("No se pudo eliminar el producto.");
-      }
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar: ${nombre}?`)) {
+      return;
+    }
+
+    try {
+      await ProductoService.eliminarProducto(id);
+      await cargarProductos();
+    } catch (err: any) {
+      const detalle = err?.response?.data?.detail;
+      alert(
+        typeof detalle === "string"
+          ? detalle
+          : "No se pudo eliminar el producto.",
+      );
     }
   };
 
   const productosFiltrados = productos.filter((producto) => {
+    const texto = busqueda.toLowerCase();
+
     const coincideBusqueda =
-      producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      producto.codigo.toLowerCase().includes(busqueda.toLowerCase());
+      producto.nombre.toLowerCase().includes(texto) ||
+      producto.codigo.toLowerCase().includes(texto);
 
     const coincideCategoria =
-      categoriaFiltro === "Todas las categorías" ||
-      producto.categoria === categoriaFiltro;
+      categoriaFiltro === "" ||
+      producto.id_categoria === Number(categoriaFiltro);
 
     return coincideBusqueda && coincideCategoria;
   });
 
   const inversionTotal = productos.reduce(
-    (total, prod) => total + prod.stock * prod.precioVenta,
+    (total, prod) => total + prod.stock * Number(prod.precio_venta),
     0,
   );
 
@@ -111,6 +159,8 @@ export const ProductosPage = () => {
           </button>
         </div>
       </div>
+
+      {error && <div className="alert alert-danger">{error}</div>}
 
       {/* MÉTRICAS Y FILTROS */}
       <div className="row mb-4">
@@ -157,11 +207,9 @@ export const ProductosPage = () => {
                 value={categoriaFiltro}
                 onChange={(e) => setCategoriaFiltro(e.target.value)}
               >
-                <option value="Todas las categorías">
-                  Todas las categorías
-                </option>
+                <option value="">Todas las categorías</option>
                 {categorias.map((categoria) => (
-                  <option key={categoria.id} value={categoria.nombre}>
+                  <option key={categoria.id} value={categoria.id}>
                     {categoria.nombre}
                   </option>
                 ))}
@@ -171,7 +219,7 @@ export const ProductosPage = () => {
         </div>
       </div>
 
-      {/* TABLA CON IMAGEN DE CLOUDINARY */}
+      {/* TABLA */}
       <div className="card shadow-sm border-0">
         <div className="card-body p-0 table-responsive">
           <table className="table table-hover align-middle mb-0">
@@ -190,9 +238,15 @@ export const ProductosPage = () => {
             </thead>
 
             <tbody>
-              {productosFiltrados.length > 0 ? (
+              {cargando ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-5 text-muted">
+                    Cargando productos...
+                  </td>
+                </tr>
+              ) : productosFiltrados.length > 0 ? (
                 productosFiltrados.map((producto) => (
-                  <tr key={producto.id}>
+                  <tr key={producto.id_producto}>
                     <td className="ps-4 fw-bold text-secondary">
                       {producto.codigo}
                     </td>
@@ -202,17 +256,17 @@ export const ProductosPage = () => {
                         <img
                           src={producto.image_url}
                           alt={producto.nombre}
-                          className="rounded-3 border"
+                          className="rounded"
                           style={{
-                            width: "48px",
-                            height: "48px",
+                            width: 48,
+                            height: 48,
                             objectFit: "cover",
                           }}
                         />
                       ) : (
                         <div
-                          className="bg-light rounded-3 border d-flex align-items-center justify-content-center text-muted"
-                          style={{ width: "48px", height: "48px" }}
+                          className="bg-light rounded d-flex align-items-center justify-content-center text-muted"
+                          style={{ width: 48, height: 48 }}
                         >
                           <i className="bi bi-image"></i>
                         </div>
@@ -221,7 +275,7 @@ export const ProductosPage = () => {
 
                     <td className="fw-semibold">{producto.nombre}</td>
 
-                    <td>{producto.categoria}</td>
+                    <td>{nombreCategoria(producto.id_categoria)}</td>
 
                     <td>
                       <span
@@ -234,7 +288,7 @@ export const ProductosPage = () => {
                     </td>
 
                     <td className="fw-semibold">
-                      S/ {producto.precioVenta.toFixed(2)}
+                      S/ {Number(producto.precio_venta).toFixed(2)}
                     </td>
 
                     <td className="pe-4 text-end">
@@ -248,7 +302,7 @@ export const ProductosPage = () => {
                       <button
                         className="btn btn-sm btn-danger"
                         onClick={() =>
-                          eliminarProducto(producto.id, producto.nombre)
+                          eliminarProducto(producto.id_producto, producto.nombre)
                         }
                       >
                         <i className="bi bi-trash"></i>
@@ -292,6 +346,7 @@ export const ProductosPage = () => {
               <div className="modal-body">
                 <ProductosForm
                   productoEditar={productoEditar}
+                  categorias={categorias}
                   onGuardar={guardarProducto}
                   onCancelar={cerrarModal}
                 />

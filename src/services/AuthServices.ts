@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../config/axios";
 
 export interface LoginRequest {
   correo: string;
@@ -24,8 +22,8 @@ export interface LoginResponse {
 
 export const authService = {
   async login(datos: LoginRequest): Promise<LoginResponse> {
-    const respuesta = await axios.post<LoginResponse>(
-      `${API_URL}/auth/login`,
+    const respuesta = await api.post<LoginResponse>(
+      `api/auth/login`,
       datos
     );
 
@@ -35,8 +33,8 @@ export const authService = {
   async obtenerUsuarioActual(): Promise<UsuarioAutenticado> {
     const token = localStorage.getItem("collins_token");
 
-    const respuesta = await axios.get<UsuarioAutenticado>(
-      `${API_URL}/auth/me`,
+    const respuesta = await api.get<UsuarioAutenticado>(
+      `api/auth/me`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
