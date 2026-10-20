@@ -4,7 +4,7 @@ import type {Rol, RolCreate} from "../data/Rol"
 
 // Inicializar roles
 const listarRoles = async (): Promise<Rol[]> => {
-    const respuesta = await api.get<Rol[]>("/roles/");
+    const respuesta = await api.get<Rol[]>("api/roles/");
     return respuesta.data;
 };
 
