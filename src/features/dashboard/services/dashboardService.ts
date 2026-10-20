@@ -1,4 +1,3 @@
-import api from "../../../config/axios";
 import type { DashboardData, DateRange } from "../types";
 import { construirDashboardDesdeVentas } from "../utils/buildDashboardFromVentas";
 import { VentaService } from "../../../services/VentaService";
