@@ -29,7 +29,7 @@ const ProductGrid: FC<ProductGridProps> = ({
             producto={producto}
             nombreCategoria={
               producto.id_categoria
-                ? nombresCategorias[producto.id_categoria] ?? "Sin categoría"
+                ? nombresCategorias?.[producto.id_categoria] ?? "Sin categoría"
                 : "Sin categoría"
             }
             onAgregar={onAgregar}
