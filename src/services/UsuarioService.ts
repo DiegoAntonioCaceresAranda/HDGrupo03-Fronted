@@ -1,118 +1,82 @@
-import { usuariosMock, type Usuario } from "../data/Usuario";
+import api from "../config/axios";
+import type { Usuario, UsuarioUpdate, UsuarioCreate } from "../data/Usuario";
 
-const STORAGE_KEY = "usuarios";
+interface UsuarioResponse {
+  id_usuario: number;
+  codigo: string;
+  nombre: string;
+  correo: string;
+  estado: "Activo" | "Inactivo";
+  id_rol: number;
+}
+
+const adaptarUsuario = (datos: UsuarioResponse): Usuario => ({
+  id: datos.id_usuario,
+  codigo: datos.codigo,
+  nombre: datos.nombre,
+  correo: datos.correo,
+  estado: datos.estado,
+  id_rol: datos.id_rol,
+});
 
 // Inicializar usuarios
-const inicializarUsuarios = (): void => {
-    const usuariosGuardados = localStorage.getItem(STORAGE_KEY);
-
-    if (!usuariosGuardados) {
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(usuariosMock)
-        );
-    }
-};
-
-// Obtener usuarios
-const obtenerUsuarios = (): Usuario[] => {
-    inicializarUsuarios();
-
-    const data = localStorage.getItem(STORAGE_KEY);
-
-    return data ? JSON.parse(data) : [];
-};
-
-// Guardar usuarios
-const guardarUsuarios = (usuarios: Usuario[]): void => {
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(usuarios)
-    );
+const listarUsuarios = async (): Promise<Usuario[]> => {
+  const respuesta = await api.get<UsuarioResponse[]>("/usuarios/");
+  return respuesta.data.map(adaptarUsuario);
 };
 
 // CREATE user
-const crearUsuario = (
-    usuario: Omit<Usuario, "id" | "codigo">
-): Usuario => {
-    const usuarios = obtenerUsuarios();
-    const nuevoId =
-        usuarios.length > 0
-            ? Math.max(...usuarios.map(u => u.id)) + 1
-            : 1;
-            
-    // Autogeneramos el código del usuario
-    const codigo = `USR-${String(nuevoId).padStart(3, '0')}`;
+const crearUsuario = async (
+  datos: UsuarioCreate
+): Promise<Usuario> => {
+  const respuesta = await api.post<UsuarioResponse>(
+    "/usuarios/",
+    {
+      nombre: datos.nombre,
+      correo: datos.correo,
+      password: datos.password,
+      estado: datos.estado,
+      id_rol: datos.id_rol,
+    }
+  );
 
-    const nuevoUsuario: Usuario = {
-        id: nuevoId,
-        codigo,
-        ...usuario
-    };
-
-    guardarUsuarios([
-        ...usuarios,
-        nuevoUsuario
-    ]);
-    return nuevoUsuario;
+  return adaptarUsuario(respuesta.data);
 };
 
-// READ
-const listarUsuarios = (): Usuario[] => {
-    return obtenerUsuarios();
-};
 
 // UPDATE
-const actualizarUsuario = (
-    id: number,
-    datos: Omit<Usuario, "id" | "codigo">
-): Usuario | null => {
-    const usuarios = obtenerUsuarios();
-    const usuarioExiste = usuarios.find(
-        usuario => usuario.id === id
-    );
+const actualizarUsuario = async (
+  id_usuario: number,
+  datos: UsuarioUpdate
+): Promise<Usuario> => {
+  const payload: UsuarioUpdate = {
+    nombre: datos.nombre,
+    correo: datos.correo,
+    estado: datos.estado,
+    id_rol: datos.id_rol,
+  };
 
-    if (!usuarioExiste) {
-        return null;
-    }
+  // Solo enviar la contraseña si se escribió una nueva
+  if (datos.password?.trim()) {
+    payload.password = datos.password;
+  }
 
-    const usuariosActualizados = usuarios.map(
-        usuario =>
-            usuario.id === id
-                ? {
-                    id,
-                    codigo: usuario.codigo,
-                    ...datos
-                }
-                : usuario
-    );
+  const respuesta = await api.put<UsuarioResponse>(
+    `/usuarios/${id_usuario}`,
+    payload
+  );
 
-    guardarUsuarios(usuariosActualizados);
-    return (
-        usuariosActualizados.find(
-            usuario => usuario.id === id
-        ) || null
-    );
+  return adaptarUsuario(respuesta.data);
 };
 
 // DELETE
-const eliminarUsuario = (id: number): boolean => {
-    const usuarios = obtenerUsuarios();
-    const usuariosFiltrados = usuarios.filter(
-        usuario => usuario.id !== id
-    );
-
-    if (usuariosFiltrados.length === usuarios.length) {
-        return false;
-    }
-    guardarUsuarios(usuariosFiltrados);
-
-    return true;
+const eliminarUsuario = async (id: number): Promise<void> => {
+  await api.delete(`/usuarios/${id}`);
 };
 
 export const UsuarioService = {
-    listarUsuarios,
-    crearUsuario,
-    actualizarUsuario,
-    eliminarUsuario
+  listarUsuarios,
+  crearUsuario,
+  actualizarUsuario,
+  eliminarUsuario,
 };
