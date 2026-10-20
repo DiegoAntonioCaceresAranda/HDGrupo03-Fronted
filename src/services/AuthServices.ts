@@ -23,7 +23,7 @@ export interface LoginResponse {
 export const authService = {
   async login(datos: LoginRequest): Promise<LoginResponse> {
     const respuesta = await api.post<LoginResponse>(
-      `/auth/login`,
+      `api/auth/login`,
       datos
     );
 
@@ -34,7 +34,7 @@ export const authService = {
     const token = localStorage.getItem("collins_token");
 
     const respuesta = await api.get<UsuarioAutenticado>(
-      `/auth/me`,
+      `api/auth/me`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

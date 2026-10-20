@@ -11,7 +11,7 @@ const listarRoles = async (): Promise<Rol[]> => {
 
 //Crear roles
 const crearRol = async (datos: RolCreate): Promise<Rol> => {
-  const respuesta = await api.post<Rol>("/roles/", datos);
+  const respuesta = await api.post<Rol>("api/roles/", datos);
   return respuesta.data;
 };
 
@@ -19,7 +19,7 @@ const crearRol = async (datos: RolCreate): Promise<Rol> => {
 //UPDATE
 const actualizarRol = async (id_rol: number, datos: Partial<RolCreate>): Promise<Rol> => {
   const respuesta = await api.put<Rol>(
-    `/roles/${id_rol}`,
+    `api/roles/${id_rol}`,
     datos
   );
   return respuesta.data;
@@ -27,7 +27,7 @@ const actualizarRol = async (id_rol: number, datos: Partial<RolCreate>): Promise
 
 //DELETE
 const eliminarRol = async (id_rol: number): Promise<void> => {
-  await api.delete(`/roles/${id_rol}`);
+  await api.delete(`api/roles/${id_rol}`);
 };
 
 export const rolService = {

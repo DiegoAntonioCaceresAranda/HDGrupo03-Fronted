@@ -21,7 +21,7 @@ const adaptarUsuario = (datos: UsuarioResponse): Usuario => ({
 
 // Inicializar usuarios
 const listarUsuarios = async (): Promise<Usuario[]> => {
-  const respuesta = await api.get<UsuarioResponse[]>("/usuarios/");
+  const respuesta = await api.get<UsuarioResponse[]>("api/usuarios/");
   return respuesta.data.map(adaptarUsuario);
 };
 
@@ -30,7 +30,7 @@ const crearUsuario = async (
   datos: UsuarioCreate
 ): Promise<Usuario> => {
   const respuesta = await api.post<UsuarioResponse>(
-    "/usuarios/",
+    "api/usuarios/",
     {
       nombre: datos.nombre,
       correo: datos.correo,
@@ -62,7 +62,7 @@ const actualizarUsuario = async (
   }
 
   const respuesta = await api.put<UsuarioResponse>(
-    `/usuarios/${id_usuario}`,
+    `api/usuarios/${id_usuario}`,
     payload
   );
 
@@ -71,7 +71,7 @@ const actualizarUsuario = async (
 
 // DELETE
 const eliminarUsuario = async (id: number): Promise<void> => {
-  await api.delete(`/usuarios/${id}`);
+  await api.delete(`api/usuarios/${id}`);
 };
 
 export const UsuarioService = {
