@@ -17,7 +17,7 @@ const aCategoria = (c: CategoriaApi): Categoria =>
 
 // READ
 const listarCategorias = async (): Promise<Categoria[]> => {
-  const { data } = await api.get<CategoriaApi[]>("/categorias/");
+  const { data } = await api.get<CategoriaApi[]>("api/categorias/");
   return data.map(aCategoria);
 };
 
@@ -25,7 +25,7 @@ const listarCategorias = async (): Promise<Categoria[]> => {
 const crearCategoria = async (
   categoria: Omit<Categoria, "id">,
 ): Promise<Categoria> => {
-  const { data } = await api.post<CategoriaApi>("/categorias/", categoria);
+  const { data } = await api.post<CategoriaApi>("api/categorias/", categoria);
   return aCategoria(data);
 };
 
@@ -34,13 +34,13 @@ const actualizarCategoria = async (
   id: number,
   datos: Omit<Categoria, "id">,
 ): Promise<Categoria> => {
-  const { data } = await api.put<CategoriaApi>(`/categorias/${id}`, datos);
+  const { data } = await api.put<CategoriaApi>(`api/categorias/${id}`, datos);
   return aCategoria(data);
 };
 
 // DELETE
 const eliminarCategoria = async (id: number): Promise<void> => {
-  await api.delete(`/categorias/${id}`);
+  await api.delete(`api/categorias/${id}`);
 };
 
 // Mantengo el nombre "catergoriaService" (con el typo) para no romper tus imports

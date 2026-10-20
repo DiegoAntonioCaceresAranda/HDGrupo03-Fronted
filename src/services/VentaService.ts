@@ -7,7 +7,7 @@ const mensajeError = (err: any, porDefecto: string): string => {
 };
 
 const listarVentas = async (): Promise<Venta[]> => {
-  const { data } = await api.get<Venta[]>("/ventas/");
+  const { data } = await api.get<Venta[]>("api/ventas/");
   return data;
 };
 
@@ -15,7 +15,7 @@ const registrarVenta = async (
   datos: Omit<Venta, "id" | "ticket" | "fecha">,
 ): Promise<Venta> => {
   try {
-    const { data } = await api.post<Venta>("/ventas/", datos);
+    const { data } = await api.post<Venta>("api/ventas/", datos);
     return data;
   } catch (err) {
     throw new Error(mensajeError(err, "No se pudo registrar la venta."));

@@ -35,14 +35,14 @@ const multipart = { headers: { "Content-Type": "multipart/form-data" } };
 
 // READ
 const listarProductos = async (): Promise<Producto[]> => {
-  const { data } = await api.get<Producto[]>("/productos/");
+  const { data } = await api.get<Producto[]>("api/productos/");
   return data;
 };
 
 // CREATE
 const crearProducto = async (datos: ProductoForm): Promise<Producto> => {
   const { data } = await api.post<Producto>(
-    "/productos/",
+    "api/productos/",
     construirFormData(datos),
     multipart
   );
@@ -55,7 +55,7 @@ const actualizarProducto = async (
   datos: Partial<ProductoForm>
 ): Promise<Producto> => {
   const { data } = await api.put<Producto>(
-    `/productos/${id}`,
+    `api/productos/${id}`,
     construirFormData(datos),
     multipart
   );
@@ -64,7 +64,7 @@ const actualizarProducto = async (
 
 // DELETE
 const eliminarProducto = async (id: number): Promise<void> => {
-  await api.delete(`/productos/${id}`);
+  await api.delete(`api/productos/${id}`);
 };
 
 export const ProductoService = {
