@@ -1,113 +1,75 @@
-import productosMock, { type Producto } from "../data/Producto";
+import api from "../config/axios";
 
-const STORAGE_KEY = "productos";
+// Forma real de lo que devuelve tu FastAPI
+export interface Producto {
+  id_producto: number;
+  codigo: string;
+  nombre: string;
+  precio_venta: number;
+  stock: number;
+  id_categoria: number | null;
+  image_url: string | null;
+  image_public_id: string | null;
+}
 
-// Inicializar productos
-const inicializarProductos = (): void => {
-    const productosGuardados = localStorage.getItem(STORAGE_KEY);
+// Datos que envía el formulario
+export interface ProductoForm {
+  nombre: string;
+  precio_venta: number;
+  stock?: number;
+  id_categoria?: number | null;
+  imagen?: File | null;
+}
 
-    if (!productosGuardados) {
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(productosMock)
-        );
-    }
+// Tu backend usa Form(...) y File(...), por eso se envía FormData
+const construirFormData = (datos: Partial<ProductoForm>): FormData => {
+  const fd = new FormData();
+  Object.entries(datos).forEach(([clave, valor]) => {
+    if (valor === undefined || valor === null || valor === "") return;
+    fd.append(clave, valor instanceof File ? valor : String(valor));
+  });
+  return fd;
 };
 
-// Obtener productos
-const obtenerProductos = (): Producto[] => {
-    inicializarProductos();
+const multipart = { headers: { "Content-Type": "multipart/form-data" } };
 
-    const data = localStorage.getItem(STORAGE_KEY);
-
-    return data ? JSON.parse(data) : [];
-};
-
-// Guardar productos
-const guardarProductos = (productos: Producto[]): void => {
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(productos)
-    );
+// READ
+const listarProductos = async (): Promise<Producto[]> => {
+  const { data } = await api.get<Producto[]>("/productos/");
+  return data;
 };
 
 // CREATE
-const crearProducto = (
-    producto: Omit<Producto, "id">
-): Producto => {
-
-    const productos = obtenerProductos();
-    const nuevoId =
-        productos.length > 0
-            ? Math.max(...productos.map(p => p.id)) + 1
-            : 1;
-    const nuevoProducto: Producto = {
-        id: nuevoId,
-        ...producto
-    };
-
-    guardarProductos([
-        ...productos,
-        nuevoProducto
-    ]);
-    return nuevoProducto;
-};
-
-// READ
-const listarProductos = (): Producto[] => {
-    return obtenerProductos();
+const crearProducto = async (datos: ProductoForm): Promise<Producto> => {
+  const { data } = await api.post<Producto>(
+    "/productos/",
+    construirFormData(datos),
+    multipart
+  );
+  return data;
 };
 
 // UPDATE
-const actualizarProducto = (
-    id: number,
-    datos: Omit<Producto, "id">
-): Producto | null => {
-    const productos = obtenerProductos();
-    const productoExiste = productos.find(
-        producto => producto.id === id
-    );
-
-    if (!productoExiste) {
-        return null;
-    }
-
-    const productosActualizados = productos.map(
-        producto =>
-            producto.id === id
-                ? {
-                    id,
-                    ...datos
-                }
-                : producto
-    );
-
-    guardarProductos(productosActualizados);
-    return (
-        productosActualizados.find(
-            producto => producto.id === id
-        ) || null
-    );
+const actualizarProducto = async (
+  id: number,
+  datos: Partial<ProductoForm>
+): Promise<Producto> => {
+  const { data } = await api.put<Producto>(
+    `/productos/${id}`,
+    construirFormData(datos),
+    multipart
+  );
+  return data;
 };
 
 // DELETE
-const eliminarProducto = (id: number): boolean => {
-    const productos = obtenerProductos();
-    const productosFiltrados = productos.filter(
-        producto => producto.id !== id
-    );
-
-    if (productosFiltrados.length === productos.length) {
-        return false;
-    }
-    guardarProductos(productosFiltrados);
-
-    return true;
+const eliminarProducto = async (id: number): Promise<void> => {
+  await api.delete(`/productos/${id}`);
 };
 
 export const ProductoService = {
-    listarProductos,
-    crearProducto,
-    actualizarProducto,
-    eliminarProducto
+  listarProductos,
+  crearProducto,
+  actualizarProducto,
+  eliminarProducto,
 };

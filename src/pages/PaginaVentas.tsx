@@ -22,6 +22,7 @@ const PaginaVentas: FC = (): ReactElement => {
   const {
     productosFiltrados,
     categorias,
+    nombresCategorias,
     categoriaActiva,
     setCategoriaActiva,
     busqueda,
@@ -65,10 +66,10 @@ const PaginaVentas: FC = (): ReactElement => {
     );
   };
 
-  const handleCompletarVenta = () => {
+  const handleCompletarVenta = async () => {
     setProcesando(true);
     try {
-      const venta = VentaService.registrarVenta({
+      const venta = await VentaService.registrarVenta({
         tipoOrden,
         ubicacion: ubicacion || undefined,
         cliente: cliente || undefined,
@@ -93,7 +94,7 @@ const PaginaVentas: FC = (): ReactElement => {
       limpiarCarrito();
       setUbicacion("");
       setCliente("");
-      refrescar();
+      await refrescar();
     } catch (error) {
       const mensaje =
         error instanceof Error
@@ -178,6 +179,7 @@ const PaginaVentas: FC = (): ReactElement => {
 
             <ProductGrid
               productos={productosFiltrados}
+              nombresCategorias={nombresCategorias}
               onAgregar={agregarProducto}
             />
           </section>

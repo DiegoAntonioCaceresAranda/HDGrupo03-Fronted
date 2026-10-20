@@ -1,14 +1,19 @@
 import type { FC, ReactElement } from "react";
 import { Coffee, Plus } from "lucide-react";
 import { formatoMoneda } from "../../dashboard/utils/dashboardMetrics";
-import type { Producto } from "../../../data/Producto";
+import type { Producto } from "../../../services/ProductoService";
 
 interface ProductCardProps {
   producto: Producto;
+  nombreCategoria: string;
   onAgregar: (producto: Producto) => void;
 }
 
-const ProductCard: FC<ProductCardProps> = ({ producto, onAgregar }): ReactElement => {
+const ProductCard: FC<ProductCardProps> = ({
+  producto,
+  nombreCategoria,
+  onAgregar,
+}): ReactElement => {
   const sinStock = producto.stock <= 0;
 
   return (
@@ -21,10 +26,18 @@ const ProductCard: FC<ProductCardProps> = ({ producto, onAgregar }): ReactElemen
     >
       <div className="d-flex flex-column gap-2">
         <div
-          className="rounded-3 d-flex align-items-center justify-content-center position-relative"
+          className="rounded-3 d-flex align-items-center justify-content-center position-relative overflow-hidden"
           style={{ aspectRatio: "1 / 1", backgroundColor: "var(--admin-secondary-container)" }}
         >
-          <Coffee size={32} color="var(--admin-primary)" />
+          {producto.image_url ? (
+            <img
+              src={producto.image_url}
+              alt={producto.nombre}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <Coffee size={32} color="var(--admin-primary)" />
+          )}
           <span
             className="position-absolute top-0 end-0 m-2 px-2 py-1 rounded-pill"
             style={{
@@ -39,7 +52,7 @@ const ProductCard: FC<ProductCardProps> = ({ producto, onAgregar }): ReactElemen
         </div>
         <div>
           <span className="d-block text-uppercase" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.4, color: "var(--admin-secondary)" }}>
-            {producto.categoria}
+            {nombreCategoria}
           </span>
           <h3 className="mb-0 mt-1" style={{ fontFamily: "var(--admin-font-display)", fontSize: 16, fontWeight: 600, color: "var(--admin-on-surface)" }}>
             {producto.nombre}
@@ -50,7 +63,7 @@ const ProductCard: FC<ProductCardProps> = ({ producto, onAgregar }): ReactElemen
 
       <div className="d-flex align-items-center justify-content-between mt-3 pt-2">
         <span style={{ fontFamily: "var(--admin-font-display)", fontSize: 18, fontWeight: 700, color: "var(--admin-primary)" }}>
-          {formatoMoneda(producto.precioVenta)}
+          {formatoMoneda(Number(producto.precio_venta))}
         </span>
         <span
           className="rounded-2 d-flex align-items-center justify-content-center"
