@@ -5,3 +5,13 @@
   background-color: var(--admin-outline-variant);
   border-radius: 4px;
 }
+.pos-cart-panel {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+@media (min-width: 1200px) {
+  .pos-cart-panel {
+    min-width: 340px;
+  }
+}

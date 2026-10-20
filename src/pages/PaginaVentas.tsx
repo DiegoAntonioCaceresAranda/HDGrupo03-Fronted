@@ -1,4 +1,3 @@
-
 import { useState, type FC, type ReactElement } from "react";
 import OrderTypeToggle from "../features/ventas/components/OrderTypeToggle";
 import ProductToolbar from "../features/ventas/components/ProductToolbar";
@@ -106,11 +105,7 @@ const PaginaVentas: FC = (): ReactElement => {
           ? error.message
           : "Intenta nuevamente en unos segundos.";
 
-      mostrarToast(
-        "No se pudo completar la venta",
-        mensaje,
-        "error",
-      );
+      mostrarToast("No se pudo completar la venta", mensaje, "error");
     } finally {
       setProcesando(false);
     }
@@ -130,10 +125,14 @@ const PaginaVentas: FC = (): ReactElement => {
   return (
     <>
       <div className="admin-page">
-        <div className="d-flex flex-column flex-lg-row gap-4">
+        <div className="d-flex flex-column flex-lg-row gap-4 aling-items-start">
           <section
-            className="flex-grow-1 d-flex flex-column gap-4"
-            style={{ minWidth: 0 }}
+            className="d-flex flex-column gap-4"
+            style={{
+              flex: "1 1 0",
+              minWidth: 0,
+              width: "100%",
+            }}
           >
             <div className="admin-card rounded-4 p-4 border d-flex flex-column flex-sm-row justify-content-between gap-3">
               <div>
@@ -168,15 +167,12 @@ const PaginaVentas: FC = (): ReactElement => {
                     color: "var(--admin-on-surface-variant)",
                   }}
                 >
-                  Selecciona productos del catálogo para registrar una orden.
-                  El stock se descuenta automáticamente al cobrar.
+                  Selecciona productos del catálogo para registrar una orden. El
+                  stock se descuenta automáticamente al cobrar.
                 </p>
               </div>
 
-              <OrderTypeToggle
-                valor={tipoOrden}
-                alCambiar={setTipoOrden}
-              />
+              <OrderTypeToggle valor={tipoOrden} alCambiar={setTipoOrden} />
             </div>
 
             <div className="d-flex flex-column gap-3">
@@ -201,7 +197,14 @@ const PaginaVentas: FC = (): ReactElement => {
             />
           </section>
 
-          <aside className="w-100" style={{ maxWidth: 380 }}>
+          <aside className="pos-cart-panel"
+            style={{
+              flex: "0 0 34%",
+              width: "100%",
+              minWidth: 0,
+              maxWidth: "none",
+            }}
+          >
             <div style={{ position: "sticky", top: 88 }}>
               <CartPanel
                 tipoOrden={tipoOrden}
