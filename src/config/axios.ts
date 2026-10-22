@@ -1,7 +1,13 @@
 import axios from "axios";
 
+const apiBaseUrl = (
+  import.meta.env.VITE_API_URL ?? "https://collinscafegrupo03.onrender.com"
+)
+  .replace(/\/+$/, "")
+  .replace(/\/api$/, "");
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: apiBaseUrl,
   headers: {
     "Content-Type": "application/json",
   },
