@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiBaseUrl = (
-  import.meta.env.VITE_API_URL ?? "https://collinscafegrupo03.onrender.com"
+  import.meta.env.VITE_API_URL
 )
   .replace(/\/+$/, "")
   .replace(/\/api$/, "");
