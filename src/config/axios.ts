@@ -1,8 +1,10 @@
 import axios from "axios";
 
-const apiBaseUrl = (
-  import.meta.env.VITE_API_URL
-)
+// URL de Render como respaldo seguro
+const rawApiUrl = import.meta.env.VITE_API_URL || "https://collinscafegrupo03.onrender.com";
+
+const apiBaseUrl = String(rawApiUrl)
+  .trim()
   .replace(/\/+$/, "")
   .replace(/\/api$/, "");
 
@@ -28,7 +30,7 @@ api.interceptors.response.use(
       localStorage.removeItem("token");
     }
     return Promise.reject(error);
-  },
+  }
 );
 
 export default api;

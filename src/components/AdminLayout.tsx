@@ -8,11 +8,6 @@ import {
   ShoppingBag,
   Package,
   BarChart3,
-  Settings,
-  HelpCircle,
-  Search,
-  Bell,
-  Grid3x3,
   ChevronDown,
   User,
   Users,
@@ -35,13 +30,7 @@ const navLinks: NavLink[] = [
   { label: "Reportes", icon: BarChart3, path: "/admin/reports" },
 ];
 
-const footerLinks: NavLink[] = [
-  { label: "Configuración", icon: Settings, path: "/admin/settings" },
-  { label: "Ayuda", icon: HelpCircle, path: "/admin/help" },
-];
-
 const AdminLayout: FC = (): ReactElement => {
-  const [searchTerm, setSearchTerm] = useState("");
   const [usersOpen, setUsersOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -153,21 +142,7 @@ const AdminLayout: FC = (): ReactElement => {
           </div>
         </div>
 
-        <div
-          className="d-flex flex-column gap-2 mt-auto pt-3 border-top"
-          style={{ borderColor: "var(--admin-surface-container-low)" }}
-        >
-          {footerLinks.map(({ label, icon: Icon, path }) => (
-            <Link
-              key={label}
-              to={path}
-              className="admin-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded text-decoration-none"
-            >
-              <Icon size={20} />
-              <span style={{ fontSize: 14, fontWeight: 600 }}>{label}</span>
-            </Link>
-          ))}
-        </div>
+        
       </nav>
 
       <div className="admin-main d-flex flex-column w-100 min-vh-100">
@@ -179,44 +154,10 @@ const AdminLayout: FC = (): ReactElement => {
             zIndex: 10,
           }}
         >
-          <div className="flex-grow-1 d-flex align-items-center">
-            <div className="position-relative w-100">
-              <Search
-                size={18}
-                className="position-absolute top-50 start-0 translate-middle-y ms-3"
-                style={{ color: "var(--admin-on-surface-variant)" }}
-              />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar..."
-                className="form-control rounded-pill ps-5"
-                style={{
-                  backgroundColor: "var(--admin-surface-container-low)",
-                  border: "1px solid transparent",
-                  fontSize: 14,
-                  height: 40,
-                }}
-              />
-            </div>
+          <div className="flex-grow-1 d-flex align-items-center">    
           </div>
 
           <div className="d-flex align-items-center gap-2">
-            <button
-              aria-label="Notifications"
-              className="btn admin-icon-btn rounded-circle d-flex align-items-center justify-content-center"
-              style={{ width: 40, height: 40 }}
-            >
-              <Bell size={20} />
-            </button>
-            <button
-              aria-label="Apps"
-              className="btn admin-icon-btn rounded-circle d-flex align-items-center justify-content-center"
-              style={{ width: 40, height: 40 }}
-            >
-              <Grid3x3 size={20} />
-            </button>
 
             <div className="position-relative ms-2">
               <button

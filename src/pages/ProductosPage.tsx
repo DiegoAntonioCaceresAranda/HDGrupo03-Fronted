@@ -145,10 +145,6 @@ export const ProductosPage = () => {
         </div>
 
         <div>
-          <button className="btn btn-outline-secondary me-2">
-            <i className="bi bi-file-earmark-pdf me-1"></i>
-            PDF
-          </button>
 
           <button
             className="btn btn-dark fw-semibold"

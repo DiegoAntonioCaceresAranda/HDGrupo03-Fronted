@@ -121,7 +121,7 @@ export const RolesPage = () => {
           </small>
         </div>
         <div>
-          <button className="btn btn-cafe fw-semibold" onClick={abrirNuevoRol}>
+          <button className="btn btn-dark fw-semibold" onClick={abrirNuevoRol}>
             <i className="bi bi-plus-lg me-1"></i>
             Nuevo Rol
           </button>

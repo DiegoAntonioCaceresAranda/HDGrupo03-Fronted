@@ -119,7 +119,7 @@ export const CategoriasPage = () => {
         </div>
         <div>
           <button
-            className="btn btn-cafe fw-semibold"
+            className="btn btn-dark fw-semibold"
             onClick={abrirNuevaCategoria}
           >
             <i className="bi bi-plus-lg me-1"></i>
@@ -281,7 +281,7 @@ export const CategoriasPage = () => {
                 <button
                   type="submit"
                   form="categoriaForm"
-                  className="btn btn-cafe rounded-pill px-4"
+                  className="btn btn-black rounded-pill px-4"
                 >
                   <i className="bi bi-check-lg me-2"></i>
                   {categoriaEditar
