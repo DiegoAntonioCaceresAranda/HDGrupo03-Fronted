@@ -273,7 +273,7 @@ export const CategoriasPage = () => {
               <div className="modal-footer border-top-0">
                 <button
                   type="button"
-                  className="btn btn-light rounded-pill px-4"
+                  className="btn btn-light"
                   onClick={cerrarModal}
                 >
                   Cancelar
@@ -281,7 +281,7 @@ export const CategoriasPage = () => {
                 <button
                   type="submit"
                   form="categoriaForm"
-                  className="btn btn-black rounded-pill px-4"
+                  className="btn btn-dark"
                 >
                   <i className="bi bi-check-lg me-2"></i>
                   {categoriaEditar

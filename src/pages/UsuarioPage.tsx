@@ -256,7 +256,7 @@ export const UsuarioPage = () => {
                   <th className="py-3 ps-4 text-muted small fw-bold">CÓDIGO</th>
                   <th className="py-3 text-muted small fw-bold">NOMBRE</th>
                   <th className="py-3 text-muted small fw-bold">CORREO</th>
-                  <th className="py-3 text-muted small fw-bold">CONTRASEÑA</th>
+               
                   <th className="py-3 text-muted small fw-bold">ROL</th>
                   <th className="py-3 text-muted small fw-bold">ESTADO</th>
                   <th className="py-3 pe-4 text-muted small fw-bold text-end">
@@ -281,7 +281,7 @@ export const UsuarioPage = () => {
 
                         <td>{usuario.correo}</td>
 
-                        <td>••••••••</td>
+              
 
                         <td>
                           <span

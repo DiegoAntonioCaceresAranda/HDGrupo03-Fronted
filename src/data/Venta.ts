@@ -5,7 +5,7 @@ export interface ItemVenta {
     cantidad: number;
 }
 
-export type TipoOrden = "En Local" | "Para Llevar" | "Delivery";
+export type TipoOrden = "En Local" | "Para Llevar";
 
 export type MetodoPago = "Efectivo" | "Tarjeta" | "QR / Transferencia";
 

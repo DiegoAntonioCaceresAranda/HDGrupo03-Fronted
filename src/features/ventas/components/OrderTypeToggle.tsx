@@ -28,6 +28,7 @@ const OrderTypeToggle: FC<OrderTypeToggleProps> = ({ valor, alCambiar }): ReactE
           style={{
             fontSize: 13,
             fontWeight: 600,
+            whiteSpace: "nowrap",
             backgroundColor: activo ? "var(--admin-primary)" : "transparent",
             color: activo ? "#ffffff" : "var(--admin-on-surface-variant)",
             boxShadow: activo ? "0 1px 4px rgba(85,55,34,0.25)" : "none",

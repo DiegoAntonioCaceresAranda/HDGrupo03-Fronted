@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import logo from "../assets/logo.jpeg";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { FC, ReactElement } from "react";
@@ -12,6 +12,8 @@ import {
   User,
   Users,
   LogOut,
+  Sun,
+  Moon,
   type LucideIcon,
 } from "lucide-react";
 import "../styles/admin.css";
@@ -33,13 +35,72 @@ const navLinks: NavLink[] = [
 const AdminLayout: FC = (): ReactElement => {
   const [usersOpen, setUsersOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("collins_theme") === "dark";
+  });
 
   const location = useLocation();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.setAttribute("data-theme", "dark");
+      localStorage.setItem("collins_theme", "dark");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+      localStorage.setItem("collins_theme", "light");
+    }
+  }, [darkMode]);
+
+  const obtenerNombreUsuario = (): string => {
+    try {
+      const userStr =
+        localStorage.getItem("collins_user") ||
+        localStorage.getItem("usuario") ||
+        localStorage.getItem("user");
+
+      if (userStr) {
+        const userObj = JSON.parse(userStr);
+        if (userObj?.nombre) return userObj.nombre;
+        if (userObj?.name) return userObj.name;
+        if (userObj?.correo) {
+          const email = String(userObj.correo).toLowerCase();
+          if (email.includes("wilmer")) return "Wilmer Tinoco";
+          if (email.includes("christopher")) return "Christopher Ramirez";
+          if (email.includes("admin")) return "Administrador";
+        }
+      }
+
+      const token =
+        localStorage.getItem("collins_token") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("access_token");
+
+      if (token && token.includes(".")) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload?.nombre) return payload.nombre;
+        if (payload?.name) return payload.name;
+        if (payload?.sub) {
+          const sub = String(payload.sub).toLowerCase();
+          if (sub.includes("wilmer")) return "Wilmer Tinoco";
+          if (sub.includes("christopher")) return "Christopher Ramirez";
+          if (sub.includes("admin")) return "Administrador";
+          return String(payload.sub);
+        }
+      }
+    } catch {
+      // Si hay error de lectura, retorna el valor por defecto
+    }
+    return "Administrador";
+  };
+
+  const nombreUsuario = obtenerNombreUsuario();
+
   const handleLogout = () => {
+    localStorage.removeItem("collins_token");
     localStorage.removeItem("token");
     localStorage.removeItem("access_token");
+    localStorage.removeItem("collins_user");
     localStorage.removeItem("usuario");
     localStorage.removeItem("user");
     setProfileOpen(false);
@@ -141,25 +202,59 @@ const AdminLayout: FC = (): ReactElement => {
             )}
           </div>
         </div>
-
-        
       </nav>
 
       <div className="admin-main d-flex flex-column w-100 min-vh-100">
         <header
-          className="d-none d-md-flex justify-content-between align-items-center px-3 border-bottom shadow-sm sticky-top"
+          className="d-none d-md-flex justify-content-between align-items-center px-4 border-bottom shadow-sm sticky-top"
           style={{
             backgroundColor: "var(--admin-surface)",
             height: 64,
             zIndex: 10,
           }}
         >
-          <div className="flex-grow-1 d-flex align-items-center">    
-          </div>
+          <div className="flex-grow-1 d-flex align-items-center"></div>
 
-          <div className="d-flex align-items-center gap-2">
+          <div className="d-flex align-items-center gap-3">
+            {/* Saludo dinámico del usuario logueado */}
+            <div className="d-flex flex-column text-end me-1">
+              <span
+                style={{
+                  fontSize: 11,
+                  color: "var(--admin-on-surface-variant)",
+                  lineHeight: 1.1,
+                }}
+              >
+                Bienvenido,
+              </span>
+              <span
+                className="fw-bold"
+                style={{
+                  fontSize: 14,
+                  color: "var(--admin-primary)",
+                }}
+              >
+                {nombreUsuario}
+              </span>
+            </div>
 
-            <div className="position-relative ms-2">
+            {/* Botón de Modo Oscuro / Claro */}
+            <button
+              type="button"
+              onClick={() => setDarkMode(!darkMode)}
+              className="btn rounded-circle d-flex align-items-center justify-content-center border-0"
+              style={{
+                width: 36,
+                height: 36,
+                backgroundColor: "var(--admin-surface-container-low)",
+                color: "var(--admin-primary)",
+              }}
+              title={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            >
+              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+
+            <div className="position-relative">
               <button
                 type="button"
                 onClick={() => setProfileOpen((prev) => !prev)}

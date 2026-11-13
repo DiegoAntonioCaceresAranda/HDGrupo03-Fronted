@@ -282,7 +282,7 @@ export const RolesPage = () => {
               <div className="modal-footer border-top-0">
                 <button
                   type="button"
-                  className="btn btn-light rounded-pill px-4"
+                  className="btn btn-light"
                   onClick={() => {
                     setShowModal(false);
                     setRolEditar(null);
@@ -293,7 +293,7 @@ export const RolesPage = () => {
                 <button
                   type="submit"
                   form="rolForm"
-                  className="btn btn-cafe rounded-pill px-4"
+                  className="btn btn-dark"
                 >
                   <i className="bi bi-check-lg me-2"></i>
                   {rolEditar ? "Actualizar Rol" : "Guardar Rol"}

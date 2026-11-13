@@ -102,3 +102,21 @@
 .admin-bar-wrap:hover .admin-bar-tooltip {
   opacity: 1;
 }
+/* ================= MODO OSCURO ADMIN (SIN ROMPER MODALES NI TOASTS) ================= */
+html[data-theme="dark"] {
+  filter: invert(0.92) hue-rotate(180deg);
+  background-color: #faf7f2 !important;
+}
+
+/* Devolvemos las imágenes, videos y el ícono del sol a sus colores reales */
+html[data-theme="dark"] img,
+html[data-theme="dark"] video {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Compactar el modal de Productos para que quepa completo en pantalla sin bajar */
+.modal-content,
+[role="dialog"] {
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
