@@ -19,7 +19,8 @@ export function useHomeDashboard(): UseHomeDashboardResult {
       .then((result) => {
         if (!cancelled) setData(result);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Error del dashboard:", err);
         if (!cancelled) setError("No se pudo cargar el resumen del dashboard.");
       })
       .finally(() => {

@@ -14,6 +14,7 @@ import { UsuarioPage } from "./pages/UsuarioPage";
 import RolesPage from "./pages/RolPage";
 import PaginaVentas from "./pages/PaginaVentas";
 import AdminLayout from "./components/AdminLayout";
+import PaginaVentasPendientes from "./pages/PaginaVentasPendientes";
 
 const App: FC = (): ReactElement => (
   <BrowserRouter>
@@ -30,6 +31,7 @@ const App: FC = (): ReactElement => (
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<PaginaDashboard />} />
           <Route path="ventas" element={<PaginaVentas />} />
+          <Route path="ventas/pendientes" element={<PaginaVentasPendientes />} />
           <Route path="products" element={<ProductosPage />} />
           <Route path="categories" element={<CategoriasPage />} />
           <Route path="reports" element={<PaginaReportes />} />

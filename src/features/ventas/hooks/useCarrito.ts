@@ -14,6 +14,10 @@ interface UseCarritoResult {
   eliminarArticulo: (productoId: number) => void;
   aplicarDescuento: (porcentaje: number) => void;
   limpiarCarrito: () => void;
+  cargarArticulos: (
+    articulos: ItemCarrito[],
+    descuentoPorcentaje: number,
+  ) => void;
 }
 
 export function useCarrito(): UseCarritoResult {
@@ -84,6 +88,15 @@ export function useCarrito(): UseCarritoResult {
     setError(null);
   };
 
+  const cargarArticulos = (
+    nuevosArticulos: ItemCarrito[],
+    descuento: number,
+  ) => {
+    setArticulos(nuevosArticulos);
+    setDescuentoPorcentaje(descuento);
+    setError(null);
+  };
+
   const cantidadTotal = useMemo(
     () => articulos.reduce((acumulado, articulo) => acumulado + articulo.cantidad, 0),
     [articulos],
@@ -104,5 +117,6 @@ export function useCarrito(): UseCarritoResult {
     eliminarArticulo,
     aplicarDescuento: setDescuentoPorcentaje,
     limpiarCarrito,
+    cargarArticulos,
   };
 }

@@ -156,7 +156,7 @@ const CartPanel: FC<CartPanelProps> = ({
             <button
               type="button"
               onClick={onGuardarPendiente}
-              disabled={articulos.length === 0}
+              disabled={articulos.length === 0 || procesando}
               className="btn w-100 py-2 rounded-3 d-flex align-items-center justify-content-center gap-2"
               style={{ backgroundColor: "var(--admin-surface-container-low)", color: "var(--admin-on-surface-variant)", fontSize: 13, fontWeight: 600 }}
             >
