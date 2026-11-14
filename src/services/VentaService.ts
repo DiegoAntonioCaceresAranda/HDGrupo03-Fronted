@@ -11,13 +11,13 @@ export type DatosVenta = Omit<Venta, "id" | "ticket" | "fecha" | "estado"> & {
 };
 
 const listarVentas = async (): Promise<Venta[]> => {
-  const { data } = await api.get<Venta[]>("api/ventas/");
+  const { data } = await api.get<Venta[]>("/api/ventas/");
   return data;
 };
 
 const registrarVenta = async (datos: DatosVenta): Promise<Venta> => {
   try {
-    const { data } = await api.post<Venta>("api/ventas/", datos);
+    const { data } = await api.post<Venta>("/api/ventas/", datos);
     return data;
   } catch (err) {
     throw new Error(mensajeError(err, "No se pudo registrar la venta."));
@@ -26,7 +26,7 @@ const registrarVenta = async (datos: DatosVenta): Promise<Venta> => {
 
 const guardarPendiente = async (datos: DatosVenta): Promise<Venta> => {
   try {
-    const { data } = await api.post<Venta>("api/ventas/pendientes", datos);
+    const { data } = await api.post<Venta>("/api/ventas/pendientes", datos);
     return data;
   } catch (err) {
     throw new Error(mensajeError(err, "No se pudo guardar el pendiente."));
@@ -44,7 +44,7 @@ const listarPendientes = async (): Promise<Venta[]> => {
 
 const cancelarPendiente = async (id: number): Promise<void> => {
   try {
-    await api.delete(`api/ventas/${id}`);
+    await api.delete(`/api/ventas/${id}`);
   } catch (err) {
     throw new Error(mensajeError(err, "No se pudo cancelar el pendiente."));
   }
