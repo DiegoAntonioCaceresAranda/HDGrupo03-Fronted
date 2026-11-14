@@ -1,7 +1,6 @@
 import type { Venta } from "../../../data/Venta";
 import type { Producto } from "../../../data/Producto";
 import type { ActivityItem, AttentionOrder, HomeDashboardData, LowStockProduct } from "../types";
-import { formatoMoneda } from "../../dashboard/utils/dashboardMetrics";
 
 const UMBRAL_STOCK_BAJO = 15;
 
@@ -36,19 +35,8 @@ function construirLowStock(productos: Producto[]): LowStockProduct[] {
     }));
 }
 
-function construirAttentionOrders(ventasHoy: Venta[]): AttentionOrder[] {
-  // El POS registra la venta ya completada; "por despachar" es un proxy con los pedidos
-  // de tipo Delivery del día, ya que aún no existe un estado de entrega propio.
-  return ventasHoy
-    .filter((v) => v.tipoOrden === "Delivery")
-    .slice(-6)
-    .reverse()
-    .map((v) => ({
-      orderId: `#${v.ticket}`,
-      customerName: v.cliente?.trim() || "Cliente sin registrar",
-      reason: "Por despachar",
-      amount: formatoMoneda(v.total),
-    }));
+function construirAttentionOrders(_ventasHoy: Venta[]): AttentionOrder[] {
+  return [];
 }
 
 function construirActividad(ventas: Venta[], lowStock: LowStockProduct[]): ActivityItem[] {

@@ -35,18 +35,7 @@ export function construirHomeDesdeVentas(ventas: Venta[], productos: Producto[])
       .map((v) => v.cliente!.trim().toLowerCase()),
   ).size;
 
-  // El POS registra la venta ya pagada, así que no existe un estado real de "pago pendiente".
-  // "Por despachar" es un proxy: pedidos Delivery de hoy que aún no se marcan como entregados.
-  const attentionOrders: AttentionOrder[] = ventasHoy
-    .filter((v) => v.tipoOrden === "Delivery")
-    .slice(-5)
-    .reverse()
-    .map((v) => ({
-      orderId: `#${v.ticket}`,
-      customerName: v.cliente?.trim() || "Cliente de mostrador",
-      reason: "Por despachar",
-      amount: formatoMoneda(v.total),
-    }));
+  const attentionOrders: AttentionOrder[] = [];
 
   const lowStockProducts: LowStockProduct[] = productos
     .filter((p) => p.stock < UMBRAL_STOCK_BAJO)
