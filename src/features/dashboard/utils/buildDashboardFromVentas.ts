@@ -96,10 +96,6 @@ export function construirDashboardDesdeVentas(ventas: Venta[], range: DateRange)
   const ticketPromedioActual = pedidosTotal > 0 ? gananciaTotal / pedidosTotal : 0;
   const ticketPromedioAnterior = pedidosAnterior > 0 ? gananciaAnterior / pedidosAnterior : 0;
 
-  // Nota: el POS registra la venta ya completada (no hay estado "en camino" todavía),
-  // así que "pendientes de entrega" es un proxy: pedidos del tipo Delivery en el periodo.
-  const deliveryPendiente = ventasPeriodo.filter((v) => v.tipoOrden === "Delivery").length;
-
   return {
     ganancia: { total: gananciaTotal, cambioPorcentaje: cambioPorcentaje(gananciaTotal, gananciaAnterior) },
     pedidos: { total: pedidosTotal, cambioPorcentaje: cambioPorcentaje(pedidosTotal, pedidosAnterior) },
@@ -107,7 +103,7 @@ export function construirDashboardDesdeVentas(ventas: Venta[], range: DateRange)
       cantidad: ticketPromedioActual,
       cambioPorcentaje: cambioPorcentaje(ticketPromedioActual, ticketPromedioAnterior),
     },
-    deliveryPendiente: { contador: deliveryPendiente },
+    deliveryPendiente: { contador: 0 },
     productoDestacado: construirProductosDestacados(ventasPeriodo),
     transacciones: construirTransacciones(ventasPeriodo),
   };
