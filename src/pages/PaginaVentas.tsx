@@ -107,47 +107,55 @@ const PaginaVentas: FC = (): ReactElement => {
     if (!pendienteEntrante || cargando || pendienteCargado.current) return;
     pendienteCargado.current = true;
 
-    const cargados: ItemCarrito[] = [];
-    const avisos: string[] = [];
+    const cargarPendiente = async () => {
+      // Se difiere un tick para no llamar setState de forma síncrona en el efecto
+      await Promise.resolve();
 
-    pendienteEntrante.items.forEach((item) => {
-      const prod = productos.find((p) => p.id_producto === item.productoId);
-      if (!prod || prod.stock <= 0) {
-        avisos.push(`"${item.nombre}" sin stock, se omitió`);
-        return;
-      }
-      const cantidad = Math.min(item.cantidad, prod.stock);
-      if (cantidad < item.cantidad) {
-        avisos.push(`"${item.nombre}" se ajustó a ${cantidad} uds.`);
-      }
-      cargados.push({
-        productoId: prod.id_producto,
-        nombre: prod.nombre,
-        precioUnitario: Number(prod.precio_venta),
-        cantidad,
-        stockDisponible: prod.stock,
+      const cargados: ItemCarrito[] = [];
+      const avisos: string[] = [];
+
+      pendienteEntrante.items.forEach((item) => {
+        const prod = productos.find((p) => p.id_producto === item.productoId);
+        if (!prod || prod.stock <= 0) {
+          avisos.push(`"${item.nombre}" sin stock, se omitió`);
+          return;
+        }
+        const cantidad = Math.min(item.cantidad, prod.stock);
+        if (cantidad < item.cantidad) {
+          avisos.push(`"${item.nombre}" se ajustó a ${cantidad} uds.`);
+        }
+        cargados.push({
+          productoId: prod.id_producto,
+          nombre: prod.nombre,
+          precioUnitario: Number(prod.precio_venta),
+          cantidad,
+          stockDisponible: prod.stock,
+        });
       });
-    });
 
-    cargarArticulos(cargados, pendienteEntrante.descuentoPorcentaje ?? 0);
-    setTipoOrden(pendienteEntrante.tipoOrden);
-    setUbicacion(pendienteEntrante.ubicacion ?? "");
-    setCliente(pendienteEntrante.cliente ?? "");
-    setMetodoPago(pendienteEntrante.metodoPago);
-    setPendienteActivoId(pendienteEntrante.id);
+      cargarArticulos(cargados, pendienteEntrante.descuentoPorcentaje ?? 0);
+      setTipoOrden(pendienteEntrante.tipoOrden);
+      setUbicacion(pendienteEntrante.ubicacion ?? "");
+      setCliente(pendienteEntrante.cliente ?? "");
+      setMetodoPago(pendienteEntrante.metodoPago);
+      setPendienteActivoId(pendienteEntrante.id);
 
-    if (avisos.length > 0) {
-      mostrarToast("Pedido retomado con ajustes", avisos.join(". ") + ".");
-    } else {
-      mostrarToast(
-        "Pedido retomado",
-        `Ticket #${pendienteEntrante.ticket} cargado. Puedes editarlo y cobrarlo.`,
-      );
-    }
+      if (avisos.length > 0) {
+        mostrarToast("Pedido retomado con ajustes", avisos.join(". ") + ".");
+      } else {
+        mostrarToast(
+          "Pedido retomado",
+          `Ticket #${pendienteEntrante.ticket} cargado. Puedes editarlo y cobrarlo.`,
+        );
+      }
 
-    // Limpia el state de la navegación para que un F5 no lo vuelva a cargar
-    navigate(location.pathname, { replace: true, state: null });
-  }, [pendienteEntrante, cargando]);
+      // Limpia el state de la navegación para que un F5 no lo vuelva a cargar
+      navigate(location.pathname, { replace: true, state: null });
+    };
+
+    cargarPendiente();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendienteEntrante, cargando, productos]);
 
   const armarDatosVenta = (): DatosVenta => ({
     tipoOrden,

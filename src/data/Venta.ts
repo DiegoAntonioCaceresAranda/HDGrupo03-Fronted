@@ -7,7 +7,7 @@ export interface ItemVenta {
 
 export type TipoOrden = "En Local" | "Para Llevar";
 
-export type MetodoPago = "Efectiv   o" | "Tarjeta" | "QR / Transferencia";
+export type MetodoPago = "Efectivo" | "Tarjeta" | "QR / Transferencia";
 export type EstadoVenta = "pendiente" | "completada";
 
 export interface Venta {

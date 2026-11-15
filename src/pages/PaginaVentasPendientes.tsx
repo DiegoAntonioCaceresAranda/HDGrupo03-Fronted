@@ -11,26 +11,45 @@ const PaginaVentasPendientes: FC = (): ReactElement => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancelandoId, setCancelandoId] = useState<number | null>(null);
-
-  const cargar = async () => {
-    try {
-      setError(null);
-      setPendientes(await VentaService.listarPendientes());
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "No se pudieron cargar los pendientes.",
-      );
-    } finally {
-      setCargando(false);
-    }
-  };
+  const [retomandoId, setRetomandoId] = useState<number | null>(null);
 
   useEffect(() => {
-    cargar();
+    let activo = true;
+
+    VentaService.listarPendientes()
+      .then((datos) => {
+        if (activo) setPendientes(datos);
+      })
+      .catch((e) => {
+        if (activo) {
+          setError(
+            e instanceof Error
+              ? e.message
+              : "No se pudieron cargar los pendientes.",
+          );
+        }
+      })
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+
+    return () => {
+      activo = false;
+    };
   }, []);
 
-  const retomar = (venta: Venta) => {
-    navigate("/admin/ventas", { state: { pendiente: venta } });
+  const retomar = async (venta: Venta) => {
+    setRetomandoId(venta.id);
+    try {
+      // Al retomarlo deja de ser pendiente: se elimina de la base de datos
+      await VentaService.cancelarPendiente(venta.id);
+      navigate("/admin/ventas", { state: { pendiente: venta } });
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "No se pudo retomar el pendiente.",
+      );
+      setRetomandoId(null);
+    }
   };
 
   const cancelar = async (venta: Venta) => {
@@ -148,7 +167,10 @@ const PaginaVentasPendientes: FC = (): ReactElement => {
                 </div>
               </div>
 
-              <ul className="list-unstyled mb-0 flex-grow-1" style={{ fontSize: 13 }}>
+              <ul
+                className="list-unstyled mb-0 flex-grow-1"
+                style={{ fontSize: 13 }}
+              >
                 {venta.items.map((item) => (
                   <li
                     key={item.productoId}
@@ -178,9 +200,10 @@ const PaginaVentasPendientes: FC = (): ReactElement => {
                     backgroundColor: "var(--admin-primary)",
                     color: "#ffffff",
                   }}
+                  disabled={retomandoId === venta.id}
                   onClick={() => retomar(venta)}
                 >
-                  Retomar
+                  {retomandoId === venta.id ? "Retomando..." : "Retomar"}
                 </button>
                 <button
                   type="button"

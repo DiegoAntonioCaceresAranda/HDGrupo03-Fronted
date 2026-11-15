@@ -1,8 +1,8 @@
 import api from "../config/axios";
 import type { Venta } from "../data/Venta";
 
-const mensajeError = (err: any, porDefecto: string): string => {
-  const detalle = err?.response?.data?.detail;
+const mensajeError = (err: unknown, porDefecto: string): string => {
+  const detalle = (err as any)?.response?.data?.detail;
   return typeof detalle === "string" ? detalle : porDefecto;
 };
 
