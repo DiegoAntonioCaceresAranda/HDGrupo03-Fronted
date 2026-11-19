@@ -1,44 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import type { Categoria } from "../../data/Categoria";
 
 interface CategoriaFormProps {
   categoria?: Categoria | null;
-  onSave: (datos: Omit<Categoria, "id">) => void;
+  onSave: (datos: Omit<Categoria, "id">) => void | Promise<void>;
 }
 
-const CategoriaForm = ({
-  categoria,
-  onSave
-}: CategoriaFormProps) => {
+const CategoriaForm = ({ categoria, onSave }: CategoriaFormProps) => {
+  // El nombre se inicializa según la categoría recibida.
+  // No necesitamos useEffect ni setState dentro de un efecto.
+  const [nombre, setNombre] = useState(() => categoria?.nombre ?? "");
 
-  const [nombre, setNombre] = useState("");
-
-  useEffect(() => {
-    if (categoria) {
-      setNombre(categoria.nombre);
-    } else {
-      setNombre("");
-    }
-  }, [categoria]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!nombre.trim) {
+
+    const nombreLimpio = nombre.trim();
+
+    if (!nombreLimpio) {
       return;
     }
 
     onSave({
-      nombre: nombre.trim()
+      nombre: nombreLimpio,
     });
-  }
+  };
 
   return (
     <form id="categoriaForm" onSubmit={handleSubmit}>
-      {/* Nombre */}
       <div className="mb-4">
         <label className="form-label fw-bold small text-muted">
           Nombre de la Categoría
         </label>
+
         <input
           type="text"
           name="nombre"
@@ -47,6 +40,7 @@ const CategoriaForm = ({
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
           required
+          autoFocus
         />
       </div>
     </form>
