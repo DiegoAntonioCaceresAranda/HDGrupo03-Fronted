@@ -22,7 +22,10 @@ const UsuarioForm: React.FC<UsuarioFormProps> = ({
   const [estado, setEstado] = useState<"Activo" | "Inactivo">("Activo");
   const [roles, setRoles] = useState<Rol[]>([]);
   const [cargandoRoles, setCargandoRoles] = useState(true);
-
+  const estados = [
+    { id: "Activo", nombre: "Activo" },
+    { id: "Inactivo", nombre: "Inactivo" },
+  ];
   useEffect(() => {
     let activo = true;
 
@@ -187,29 +190,26 @@ const UsuarioForm: React.FC<UsuarioFormProps> = ({
         </div>
 
         <div className="col-md-6">
-          <label className="form-label fw-bold small text-muted">
-            Estado
-          </label>
+          <label className="form-label fw-bold small text-muted">Estado</label>
           <select
             className="form-select"
             value={estado}
-            onChange={(e) =>
-              setEstado(e.target.value as "Activo" | "Inactivo")
-            }
+            onChange={(e) => setEstado(e.target.value as "Activo" | "Inactivo")}
             required
           >
-            <option value="Activo">Activo</option>
-            <option value="Inactivo">Inactivo</option>
+            <option value="">Seleccionar...</option>
+
+            {estados.map((estadoItem) => (
+              <option key={estadoItem.id} value={estadoItem.id}>
+                {estadoItem.nombre}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
       <div className="d-flex justify-content-end gap-2 mt-4">
-        <button
-          type="button"
-          className="btn btn-light"
-          onClick={onCancelar}
-        >
+        <button type="button" className="btn btn-light" onClick={onCancelar}>
           Cancelar
         </button>
         <button type="submit" className="btn btn-dark">
