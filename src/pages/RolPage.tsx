@@ -1,61 +1,113 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { isAxiosError } from "axios";
 import RolesForm from "../components/Rol/RolForm";
 import { rolService } from "../services/RolService";
 import type { Rol } from "../data/Rol";
+import SaleToast from "../features/ventas/components/SaleToast";
+import "../styles/pos.css";
+
+const mensajeError = (error: unknown, porDefecto: string): string => {
+  if (isAxiosError(error)) {
+    const detalle = error.response?.data?.detail;
+    if (typeof detalle === "string") return detalle;
+  }
+  return porDefecto;
+};
 
 export const RolesPage = () => {
-  // Lista de roles
   const [roles, setRoles] = useState<Rol[]>([]);
-
   const [cargando, setCargando] = useState(true);
-
   const [error, setError] = useState("");
-
-  // Modal
   const [showModal, setShowModal] = useState(false);
-
-  // Rol a editar
   const [rolEditar, setRolEditar] = useState<Rol | null>(null);
-
-  // Buscador
   const [busqueda, setBusqueda] = useState("");
 
-  // ================= READ =================
+  // Confirmación de eliminación
+  const [porEliminar, setPorEliminar] = useState<Rol | null>(null);
+  const [eliminando, setEliminando] = useState(false);
+
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    titulo: string;
+    mensaje: string;
+    tono: "exito" | "error";
+  }>({ visible: false, titulo: "", mensaje: "", tono: "exito" });
+  const [animando, setAnimando] = useState(false);
+  const temporizadorToast = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const temporizadorAnim = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const mostrarToast = useCallback(
+    (titulo: string, mensaje: string, tono: "exito" | "error" = "exito") => {
+      if (temporizadorToast.current) clearTimeout(temporizadorToast.current);
+      setToast({ visible: true, titulo, mensaje, tono });
+      temporizadorToast.current = setTimeout(() => {
+        setToast((anterior) => ({ ...anterior, visible: false }));
+      }, 3000);
+
+      if (tono === "exito") {
+        if (temporizadorAnim.current) clearTimeout(temporizadorAnim.current);
+        setAnimando(true);
+        temporizadorAnim.current = setTimeout(() => setAnimando(false), 1000);
+      }
+    },
+    [],
+  );
+
+  // Recarga la lista (se usa después de crear o editar)
   const cargarRoles = async () => {
     try {
-      setCargando(true);
       setError("");
-
       const datos = await rolService.listarRoles();
       setRoles(datos);
     } catch (err) {
       console.error("Error al cargar roles:", err);
       setError("No se pudieron cargar los roles desde el servidor.");
-    } finally {
-      setCargando(false);
     }
   };
 
+  // Carga inicial
   useEffect(() => {
-    void cargarRoles();
+    let activo = true;
+
+    rolService
+      .listarRoles()
+      .then((datos) => {
+        if (activo) setRoles(datos);
+      })
+      .catch((err) => {
+        console.error("Error al cargar roles:", err);
+        if (activo) {
+          setError("No se pudieron cargar los roles desde el servidor.");
+        }
+      })
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+
+    return () => {
+      activo = false;
+    };
   }, []);
 
-  // ================= MODAL CREAR =================
   const abrirNuevoRol = () => {
     setRolEditar(null);
     setShowModal(true);
   };
 
-  // ================= MODAL EDITAR =================
   const editarRol = (rol: Rol) => {
     setRolEditar(rol);
     setShowModal(true);
   };
 
+  const cerrarModal = () => {
+    setShowModal(false);
+    setRolEditar(null);
+  };
+
   // ================= CREATE / UPDATE =================
   const guardarRol = async (datos: Omit<Rol, "id_rol">) => {
     try {
-      setError("");
+      const editando = rolEditar !== null;
 
       if (rolEditar) {
         await rolService.actualizarRol(rolEditar.id_rol, datos);
@@ -63,44 +115,51 @@ export const RolesPage = () => {
         await rolService.crearRol(datos);
       }
 
-      await cargarRoles();
-      setShowModal(false);
-      setRolEditar(null);
-    } catch (err: any) {
+      // Cierra el formulario al instante y avisa
+      cerrarModal();
+      mostrarToast(
+        editando ? "Rol actualizado" : "Rol creado",
+        editando
+          ? "Los cambios se guardaron correctamente."
+          : "El rol se registró correctamente.",
+      );
+
+      // La lista se refresca en segundo plano
+      void cargarRoles();
+    } catch (err) {
       console.error("Error al guardar rol:", err);
-
-      const detalle = err.response?.data?.detail;
-
-      setError(
-        typeof detalle === "string" ? detalle : "No se pudo guardar el rol.",
+      mostrarToast(
+        "No se pudo guardar",
+        mensajeError(err, "No se pudo guardar el rol."),
+        "error",
       );
     }
   };
 
   // ================= DELETE =================
-  const eliminarRol = async (id_rol: number, nombre: string) => {
-    const confirmar = window.confirm(
-      `¿Estás seguro de que deseas eliminar el rol "${nombre}"?`,
-    );
+  const confirmarEliminacion = async () => {
+    if (!porEliminar) return;
+    const { id_rol, nombre } = porEliminar;
 
-    if (!confirmar) return;
-
+    setEliminando(true);
     try {
-      setError("");
       await rolService.eliminarRol(id_rol);
-      await cargarRoles();
-    } catch (err: any) {
+      setRoles((anterior) => anterior.filter((r) => r.id_rol !== id_rol));
+      setPorEliminar(null);
+      mostrarToast("Rol eliminado", `"${nombre}" fue eliminado.`);
+    } catch (err) {
       console.error("Error al eliminar rol:", err);
-
-      const detalle = err.response?.data?.detail;
-
-      setError(
-        typeof detalle === "string" ? detalle : "No se pudo eliminar el rol.",
+      setPorEliminar(null);
+      mostrarToast(
+        "No se pudo eliminar",
+        mensajeError(err, "No se pudo eliminar el rol."),
+        "error",
       );
+    } finally {
+      setEliminando(false);
     }
   };
 
-  // ================= SEARCH =================
   const rolesFiltrados = roles.filter((rol) =>
     `${rol.nombre} ${rol.descripcion}`
       .toLowerCase()
@@ -109,7 +168,7 @@ export const RolesPage = () => {
 
   return (
     <div className="container mt-4">
-      {/* ================= CABECERA ================= */}
+      {/* CABECERA */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
         <div>
           <h2 className="fw-bold mb-0">
@@ -128,9 +187,8 @@ export const RolesPage = () => {
         </div>
       </div>
 
-      {/* ================= MÉTRICAS Y BUSCADOR ================= */}
+      {/* MÉTRICAS Y BUSCADOR */}
       <div className="row mb-4">
-        {/* MÉTRICA */}
         <div className="col-md-5 d-flex gap-3 mb-3 mb-md-0">
           <div className="card shadow-sm flex-fill border-0 rounded-4">
             <div className="card-body py-3 d-flex align-items-center">
@@ -150,7 +208,6 @@ export const RolesPage = () => {
           </div>
         </div>
 
-        {/* BUSCADOR */}
         <div className="col-md-7 d-flex">
           <div className="card shadow-sm border-0 rounded-4 w-100">
             <div className="card-body py-2 d-flex align-items-center gap-3">
@@ -171,7 +228,7 @@ export const RolesPage = () => {
         </div>
       </div>
 
-      {/* ================= TABLA ================= */}
+      {/* TABLA */}
       {error && (
         <div className="alert alert-danger" role="alert">
           {error}
@@ -193,14 +250,12 @@ export const RolesPage = () => {
               </thead>
               <tbody>
                 {cargando ? (
-                  // 1. Estado de carga
                   <tr>
                     <td colSpan={4} className="text-center py-4">
                       Cargando roles...
                     </td>
                   </tr>
                 ) : rolesFiltrados.length > 0 ? (
-                  // 2. Mostrar roles
                   rolesFiltrados.map((rol, index) => (
                     <tr key={rol.id_rol}>
                       <td className="ps-4 text-muted">{index + 1}</td>
@@ -212,7 +267,6 @@ export const RolesPage = () => {
                       </td>
 
                       <td className="pe-4 text-end">
-                        {/* EDITAR */}
                         <button
                           className="btn btn-sm btn-outline-cafe me-2"
                           title="Editar Rol"
@@ -221,11 +275,10 @@ export const RolesPage = () => {
                           <i className="bi bi-pencil-square"></i>
                         </button>
 
-                        {/* ELIMINAR */}
                         <button
                           className="btn btn-sm btn-danger"
                           title="Eliminar Rol"
-                          onClick={() => eliminarRol(rol.id_rol, rol.nombre)}
+                          onClick={() => setPorEliminar(rol)}
                         >
                           <i className="bi bi-trash"></i>
                         </button>
@@ -233,7 +286,6 @@ export const RolesPage = () => {
                     </tr>
                   ))
                 ) : (
-                  // 3. Tabla vacía
                   <tr>
                     <td colSpan={4} className="text-center py-4 text-muted">
                       {busqueda
@@ -248,18 +300,15 @@ export const RolesPage = () => {
         </div>
       </div>
 
-      {/* ================= MODAL ================= */}
+      {/* MODAL FORMULARIO */}
       {showModal && (
         <div
           className="modal fade show d-block"
           tabIndex={-1}
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-          }}
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
         >
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 rounded-4 shadow">
-              {/* HEADER */}
               <div className="modal-header border-bottom-0">
                 <h5 className="modal-title fw-bold text-cafe">
                   <i className="bi bi-person-badge me-2"></i>
@@ -268,33 +317,21 @@ export const RolesPage = () => {
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={() => {
-                    setShowModal(false);
-                    setRolEditar(null);
-                  }}
+                  onClick={cerrarModal}
                 ></button>
               </div>
-              {/* FORMULARIO */}
               <div className="modal-body">
                 <RolesForm roles={rolEditar} onSave={guardarRol} />
               </div>
-              {/* FOOTER */}
               <div className="modal-footer border-top-0">
                 <button
                   type="button"
                   className="btn btn-light"
-                  onClick={() => {
-                    setShowModal(false);
-                    setRolEditar(null);
-                  }}
+                  onClick={cerrarModal}
                 >
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  form="rolForm"
-                  className="btn btn-dark"
-                >
+                <button type="submit" form="rolForm" className="btn btn-dark">
                   <i className="bi bi-check-lg me-2"></i>
                   {rolEditar ? "Actualizar Rol" : "Guardar Rol"}
                 </button>
@@ -303,6 +340,120 @@ export const RolesPage = () => {
           </div>
         </div>
       )}
+
+      {/* MODAL CONFIRMAR ELIMINACIÓN */}
+      {porEliminar && (
+        <div
+          className="d-flex align-items-center justify-content-center p-3"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 2100,
+            backgroundColor: "rgba(60, 40, 25, 0.45)",
+          }}
+          onClick={() => !eliminando && setPorEliminar(null)}
+        >
+          <div
+            className="bg-white rounded-4 shadow-lg p-4 text-center"
+            style={{
+              width: "100%",
+              maxWidth: 400,
+              animation: "checkPop 0.25s ease-out",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+              style={{
+                width: 64,
+                height: 64,
+                backgroundColor: "#f1e4d1",
+                color: "var(--admin-primary, #6f4e37)",
+                fontSize: 28,
+              }}
+            >
+              <i className="bi bi-trash"></i>
+            </div>
+            <h5
+              className="fw-bold mb-2"
+              style={{ color: "var(--admin-primary, #6f4e37)" }}
+            >
+              ¿Eliminar rol?
+            </h5>
+            <p className="text-muted mb-4" style={{ fontSize: 14 }}>
+              Vas a eliminar el rol <strong>"{porEliminar.nombre}"</strong>.
+              Esta acción no se puede deshacer.
+            </p>
+            <div className="d-flex gap-2">
+              <button
+                type="button"
+                className="btn flex-fill rounded-pill fw-semibold"
+                style={{
+                  backgroundColor: "#f1e4d1",
+                  color: "var(--admin-primary, #6f4e37)",
+                }}
+                disabled={eliminando}
+                onClick={() => setPorEliminar(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn flex-fill rounded-pill fw-semibold"
+                style={{
+                  backgroundColor: "var(--admin-primary, #6f4e37)",
+                  color: "#ffffff",
+                }}
+                disabled={eliminando}
+                onClick={confirmarEliminacion}
+              >
+                {eliminando ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ANIMACIÓN DE ÉXITO */}
+      <style>{`
+        @keyframes checkPop {
+          0% { transform: scale(0.6); opacity: 0; }
+          60% { transform: scale(1.08); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
+      {animando && (
+        <div
+          className="d-flex align-items-center justify-content-center"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 2000,
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            className="rounded-circle d-flex align-items-center justify-content-center shadow"
+            style={{
+              width: 96,
+              height: 96,
+              backgroundColor: "var(--admin-primary, #6f4e37)",
+              color: "#ffffff",
+              fontSize: 52,
+              animation: "checkPop 0.4s ease-out",
+            }}
+          >
+            <i className="bi bi-check-lg"></i>
+          </div>
+        </div>
+      )}
+
+      <SaleToast
+        visible={toast.visible}
+        titulo={toast.titulo}
+        mensaje={toast.mensaje}
+        tono={toast.tono}
+      />
     </div>
   );
 };

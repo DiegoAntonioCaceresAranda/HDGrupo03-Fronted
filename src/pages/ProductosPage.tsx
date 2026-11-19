@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { isAxiosError } from "axios";
 
 import {
   ProductoService,
@@ -8,12 +9,18 @@ import {
 import ProductosForm from "../components/Producto/ProductosForm";
 import { catergoriaService } from "../services/CategoriaService";
 import { type Categoria } from "../data/Categoria";
+import SaleToast from "../features/ventas/components/SaleToast";
+import "../styles/pos.css";
+
+const mensajeError = (error: unknown, porDefecto: string): string => {
+  if (isAxiosError(error)) {
+    const detalle = error.response?.data?.detail;
+    if (typeof detalle === "string") return detalle;
+  }
+  return porDefecto;
+};
 
 export const ProductosPage = () => {
-  // =========================
-  // ESTADOS
-  // =========================
-
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -22,42 +29,89 @@ export const ProductosPage = () => {
   const [productoEditar, setProductoEditar] = useState<Producto | null>(null);
   const [busqueda, setBusqueda] = useState("");
 
-  // TEMPORAL: las categorías aún vienen de localStorage
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   // "" = todas las categorías, si no, el id de la categoría
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
 
-  // =========================
-  // CARGAR PRODUCTOS DESDE FASTAPI
-  // =========================
+  // Confirmación de eliminación
+  const [porEliminar, setPorEliminar] = useState<Producto | null>(null);
+  const [eliminando, setEliminando] = useState(false);
 
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    titulo: string;
+    mensaje: string;
+    tono: "exito" | "error";
+  }>({ visible: false, titulo: "", mensaje: "", tono: "exito" });
+  const [animando, setAnimando] = useState(false);
+  const temporizadorToast = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const temporizadorAnim = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const mostrarToast = useCallback(
+    (titulo: string, mensaje: string, tono: "exito" | "error" = "exito") => {
+      if (temporizadorToast.current) clearTimeout(temporizadorToast.current);
+      setToast({ visible: true, titulo, mensaje, tono });
+      temporizadorToast.current = setTimeout(() => {
+        setToast((anterior) => ({ ...anterior, visible: false }));
+      }, 3000);
+
+      if (tono === "exito") {
+        if (temporizadorAnim.current) clearTimeout(temporizadorAnim.current);
+        setAnimando(true);
+        temporizadorAnim.current = setTimeout(() => setAnimando(false), 1000);
+      }
+    },
+    [],
+  );
+
+  // Recarga la lista (se usa después de crear o editar)
   const cargarProductos = async () => {
     try {
       setError("");
       setProductos(await ProductoService.listarProductos());
     } catch {
       setError("No se pudieron cargar los productos. ¿Está corriendo FastAPI?");
-    } finally {
-      setCargando(false);
     }
   };
 
+  // Carga inicial
   useEffect(() => {
-    cargarProductos();
+    let activo = true;
+
+    ProductoService.listarProductos()
+      .then((datos) => {
+        if (activo) setProductos(datos);
+      })
+      .catch(() => {
+        if (activo) {
+          setError(
+            "No se pudieron cargar los productos. ¿Está corriendo FastAPI?",
+          );
+        }
+      })
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+
     catergoriaService
       .listarCategorias()
-      .then(setCategorias)
-      .catch(() => setError("No se pudieron cargar las categorías."));
+      .then((datos) => {
+        if (activo) setCategorias(datos);
+      })
+      .catch(() => {
+        if (activo) setError("No se pudieron cargar las categorías.");
+      });
+
+    return () => {
+      activo = false;
+    };
   }, []);
 
   const nombreCategoria = (id: number | null): string =>
     categorias.find((c) => c.id === id)?.nombre ?? "Sin categoría";
 
-  // =========================
   // MODAL
-  // =========================
-
   const abrirNuevoProducto = () => {
     setProductoEditar(null);
     setShowModal(true);
@@ -73,12 +127,11 @@ export const ProductosPage = () => {
     setProductoEditar(null);
   };
 
-  // =========================
   // GUARDAR (crear o editar)
   // Si falla, el error sube al formulario y se muestra en el modal
-  // =========================
-
   const guardarProducto = async (datos: ProductoForm) => {
+    const editando = productoEditar !== null;
+
     if (productoEditar) {
       await ProductoService.actualizarProducto(
         productoEditar.id_producto,
@@ -88,29 +141,42 @@ export const ProductosPage = () => {
       await ProductoService.crearProducto(datos);
     }
 
-    await cargarProductos();
+    // Cierra el formulario al instante y avisa
     cerrarModal();
+    mostrarToast(
+      editando ? "Producto actualizado" : "Producto creado",
+      editando
+        ? "Los cambios se guardaron correctamente."
+        : "El producto se registró correctamente.",
+    );
+
+    // La lista se refresca en segundo plano
+    void cargarProductos();
   };
 
-  // =========================
   // ELIMINAR
-  // =========================
+  const confirmarEliminacion = async () => {
+    if (!porEliminar) return;
+    const { id_producto, nombre } = porEliminar;
 
-  const eliminarProducto = async (id: number, nombre: string) => {
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar: ${nombre}?`)) {
-      return;
-    }
-
+    setEliminando(true);
     try {
-      await ProductoService.eliminarProducto(id);
-      await cargarProductos();
-    } catch (err: any) {
-      const detalle = err?.response?.data?.detail;
-      alert(
-        typeof detalle === "string"
-          ? detalle
-          : "No se pudo eliminar el producto.",
+      await ProductoService.eliminarProducto(id_producto);
+      setProductos((anterior) =>
+        anterior.filter((p) => p.id_producto !== id_producto),
       );
+      setPorEliminar(null);
+      mostrarToast("Producto eliminado", `"${nombre}" fue eliminado.`);
+    } catch (err) {
+      console.error("Error al eliminar el producto:", err);
+      setPorEliminar(null);
+      mostrarToast(
+        "No se pudo eliminar",
+        mensajeError(err, "No se pudo eliminar el producto."),
+        "error",
+      );
+    } finally {
+      setEliminando(false);
     }
   };
 
@@ -145,7 +211,6 @@ export const ProductosPage = () => {
         </div>
 
         <div>
-
           <button
             className="btn btn-dark fw-semibold"
             onClick={abrirNuevoProducto}
@@ -297,9 +362,7 @@ export const ProductosPage = () => {
 
                       <button
                         className="btn btn-sm btn-danger"
-                        onClick={() =>
-                          eliminarProducto(producto.id_producto, producto.nombre)
-                        }
+                        onClick={() => setPorEliminar(producto)}
                       >
                         <i className="bi bi-trash"></i>
                       </button>
@@ -318,7 +381,7 @@ export const ProductosPage = () => {
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* MODAL FORMULARIO */}
       {showModal && (
         <div
           className="modal fade show d-block"
@@ -351,6 +414,120 @@ export const ProductosPage = () => {
           </div>
         </div>
       )}
+
+      {/* MODAL CONFIRMAR ELIMINACIÓN */}
+      {porEliminar && (
+        <div
+          className="d-flex align-items-center justify-content-center p-3"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 2100,
+            backgroundColor: "rgba(60, 40, 25, 0.45)",
+          }}
+          onClick={() => !eliminando && setPorEliminar(null)}
+        >
+          <div
+            className="bg-white rounded-4 shadow-lg p-4 text-center"
+            style={{
+              width: "100%",
+              maxWidth: 400,
+              animation: "checkPop 0.25s ease-out",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+              style={{
+                width: 64,
+                height: 64,
+                backgroundColor: "#f1e4d1",
+                color: "var(--admin-primary, #6f4e37)",
+                fontSize: 28,
+              }}
+            >
+              <i className="bi bi-trash"></i>
+            </div>
+            <h5
+              className="fw-bold mb-2"
+              style={{ color: "var(--admin-primary, #6f4e37)" }}
+            >
+              ¿Eliminar producto?
+            </h5>
+            <p className="text-muted mb-4" style={{ fontSize: 14 }}>
+              Vas a eliminar <strong>"{porEliminar.nombre}"</strong>. Esta
+              acción no se puede deshacer.
+            </p>
+            <div className="d-flex gap-2">
+              <button
+                type="button"
+                className="btn flex-fill rounded-pill fw-semibold"
+                style={{
+                  backgroundColor: "#f1e4d1",
+                  color: "var(--admin-primary, #6f4e37)",
+                }}
+                disabled={eliminando}
+                onClick={() => setPorEliminar(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn flex-fill rounded-pill fw-semibold"
+                style={{
+                  backgroundColor: "var(--admin-primary, #6f4e37)",
+                  color: "#ffffff",
+                }}
+                disabled={eliminando}
+                onClick={confirmarEliminacion}
+              >
+                {eliminando ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ANIMACIÓN DE ÉXITO */}
+      <style>{`
+        @keyframes checkPop {
+          0% { transform: scale(0.6); opacity: 0; }
+          60% { transform: scale(1.08); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
+      {animando && (
+        <div
+          className="d-flex align-items-center justify-content-center"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 2000,
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            className="rounded-circle d-flex align-items-center justify-content-center shadow"
+            style={{
+              width: 96,
+              height: 96,
+              backgroundColor: "var(--admin-primary, #6f4e37)",
+              color: "#ffffff",
+              fontSize: 52,
+              animation: "checkPop 0.4s ease-out",
+            }}
+          >
+            <i className="bi bi-check-lg"></i>
+          </div>
+        </div>
+      )}
+
+      <SaleToast
+        visible={toast.visible}
+        titulo={toast.titulo}
+        mensaje={toast.mensaje}
+        tono={toast.tono}
+      />
     </div>
   );
 };

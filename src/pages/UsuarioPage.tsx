@@ -1,15 +1,22 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { isAxiosError } from "axios";
 import { UsuarioService } from "../services/UsuarioService";
 import UsuarioForm from "../components/Usuario/UsuarioForm";
 import type { Usuario, UsuarioCreate, UsuarioUpdate } from "../data/Usuario";
 import { rolService } from "../services/RolService";
 import type { Rol } from "../data/Rol";
+import SaleToast from "../features/ventas/components/SaleToast";
+import "../styles/pos.css";
+
+const mensajeError = (error: unknown, porDefecto: string): string => {
+  if (isAxiosError(error)) {
+    const detalle = error.response?.data?.detail;
+    if (typeof detalle === "string") return detalle;
+  }
+  return porDefecto;
+};
 
 export const UsuarioPage = () => {
-  // =========================
-  // ESTADOS
-  // =========================
-
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [roles, setRoles] = useState<Rol[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -18,111 +25,147 @@ export const UsuarioPage = () => {
   const [busqueda, setBusqueda] = useState("");
   const [rolFiltro, setRolFiltro] = useState("Todos los roles");
 
+  // Confirmación de eliminación
+  const [porEliminar, setPorEliminar] = useState<Usuario | null>(null);
+  const [eliminando, setEliminando] = useState(false);
+
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    titulo: string;
+    mensaje: string;
+    tono: "exito" | "error";
+  }>({ visible: false, titulo: "", mensaje: "", tono: "exito" });
+  const [animando, setAnimando] = useState(false);
+  const temporizadorToast = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const temporizadorAnim = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const mostrarToast = useCallback(
+    (titulo: string, mensaje: string, tono: "exito" | "error" = "exito") => {
+      if (temporizadorToast.current) clearTimeout(temporizadorToast.current);
+      setToast({ visible: true, titulo, mensaje, tono });
+      temporizadorToast.current = setTimeout(() => {
+        setToast((anterior) => ({ ...anterior, visible: false }));
+      }, 3000);
+
+      if (tono === "exito") {
+        if (temporizadorAnim.current) clearTimeout(temporizadorAnim.current);
+        setAnimando(true);
+        temporizadorAnim.current = setTimeout(() => setAnimando(false), 1000);
+      }
+    },
+    [],
+  );
+
   const cargarUsuarios = async () => {
     const datos = await UsuarioService.listarUsuarios();
     setUsuarios(datos);
   };
 
-  const cargarRoles = async () => {
-    const datos = await rolService.listarRoles();
-    setRoles(datos);
-  };
-
   useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        await Promise.all([cargarUsuarios(), cargarRoles()]);
-      } catch (error) {
+    let activo = true;
+
+    Promise.all([UsuarioService.listarUsuarios(), rolService.listarRoles()])
+      .then(([listaUsuarios, listaRoles]) => {
+        if (!activo) return;
+        setUsuarios(listaUsuarios);
+        setRoles(listaRoles);
+      })
+      .catch((error) => {
         console.error("Error al cargar los datos:", error);
-        alert("No se pudieron cargar los usuarios o los roles.");
-      } finally {
-        setCargando(false);
-      }
+        if (activo) {
+          mostrarToast(
+            "Error al cargar",
+            "No se pudieron cargar los usuarios o los roles.",
+            "error",
+          );
+        }
+      })
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+
+    return () => {
+      activo = false;
     };
-
-    void cargarDatos();
-  }, []);
-
-  // =========================
-  // ABRIR MODAL - NUEVO
-  // =========================
+  }, [mostrarToast]);
 
   const abrirNuevoUsuario = () => {
     setUsuarioEditar(null);
     setShowModal(true);
   };
 
-  // =========================
-  // ABRIR MODAL - EDITAR
-
   const abrirEditarUsuario = (usuario: Usuario) => {
     setUsuarioEditar(usuario);
     setShowModal(true);
   };
-
-  // =========================
-  // CERRAR MODAL
 
   const cerrarModal = () => {
     setShowModal(false);
     setUsuarioEditar(null);
   };
 
-  // =========================
-  // GUARDAR USUARIO
-  // =========================
-
   const guardarUsuario = async (
     datos: UsuarioCreate | UsuarioUpdate,
   ): Promise<void> => {
     try {
+      const editando = usuarioEditar !== null;
+
       if (usuarioEditar) {
         await UsuarioService.actualizarUsuario(
           usuarioEditar.id,
           datos as UsuarioUpdate,
         );
-        alert("Usuario actualizado correctamente.");
       } else {
         await UsuarioService.crearUsuario(datos as UsuarioCreate);
-        alert("Usuario creado correctamente.");
       }
 
-      await cargarUsuarios();
+      // Cierra el formulario al instante y avisa
       cerrarModal();
-    } catch (error: any) {
+      mostrarToast(
+        editando ? "Usuario actualizado" : "Usuario creado",
+        editando
+          ? "Los cambios se guardaron correctamente."
+          : "El usuario se registró correctamente.",
+      );
+
+      // La lista se refresca en segundo plano
+      cargarUsuarios().catch((e) => console.error(e));
+    } catch (error) {
       console.error("Error al guardar el usuario:", error);
-
-      const mensaje =
-        error?.response?.data?.detail ??
-        "No se pudo guardar el usuario. Verifica los datos y la conexión.";
-
-      alert(mensaje);
+      mostrarToast(
+        "No se pudo guardar",
+        mensajeError(
+          error,
+          "No se pudo guardar el usuario. Verifica los datos y la conexión.",
+        ),
+        "error",
+      );
       throw error;
     }
   };
 
-  // =========================
-  // ELIMINAR USUARIO
+  const confirmarEliminacion = async () => {
+    if (!porEliminar) return;
+    const { id, nombre } = porEliminar;
 
-  const eliminarUsuario = async (id: number, nombre: string) => {
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar a: ${nombre}?`)) {
-      return;
-    }
-
+    setEliminando(true);
     try {
       await UsuarioService.eliminarUsuario(id);
-      await cargarUsuarios();
-      alert("Usuario eliminado correctamente.");
-    } catch (error: any) {
+      setUsuarios((anterior) => anterior.filter((u) => u.id !== id));
+      setPorEliminar(null);
+      mostrarToast("Usuario eliminado", `"${nombre}" fue eliminado.`);
+    } catch (error) {
       console.error("Error al eliminar el usuario:", error);
-
-      alert(error?.response?.data?.detail ?? "No se pudo eliminar el usuario.");
+      setPorEliminar(null);
+      mostrarToast(
+        "No se pudo eliminar",
+        mensajeError(error, "No se pudo eliminar el usuario."),
+        "error",
+      );
+    } finally {
+      setEliminando(false);
     }
   };
-
-  // =========================
-  // FILTROS
-  // =========================
 
   const usuariosFiltrados = usuarios.filter((usuario) => {
     const texto = busqueda.toLowerCase();
@@ -138,23 +181,11 @@ export const UsuarioPage = () => {
     return coincideBusqueda && coincideRol;
   });
 
-  // =========================
-  // MÉTRICAS
-  // =========================
-
   const usuariosActivos = usuarios.filter((u) => u.estado === "Activo").length;
 
-  // =========================
-  // RETURN
-  // =========================
-
-  // de aqui llama al (AdminLayout), (barrita marrón se activa con linea 168)
   return (
     <div className="container-fluid py-4">
-      {/* =========================
-                    CABECERA
-                ========================= */}
-
+      {/* CABECERA */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
         <div>
           <h2 className="fw-bold mb-0 text-dark">Usuarios</h2>
@@ -164,7 +195,6 @@ export const UsuarioPage = () => {
         </div>
 
         <div>
-
           <button
             className="btn btn-dark fw-semibold"
             onClick={abrirNuevoUsuario}
@@ -175,13 +205,9 @@ export const UsuarioPage = () => {
         </div>
       </div>
 
-      {/* =========================
-                    MÉTRICAS Y FILTROS
-                ========================= */}
-
+      {/* MÉTRICAS Y FILTROS */}
       <div className="row mb-4">
         <div className="col-md-5 d-flex gap-3 mb-3 mb-md-0">
-          {/* TOTAL USUARIOS */}
           <div className="card shadow-sm flex-fill border-0">
             <div className="card-body py-3 d-flex align-items-center">
               <div className="bg-light p-3 rounded-3 me-3 text-dark">
@@ -194,7 +220,6 @@ export const UsuarioPage = () => {
             </div>
           </div>
 
-          {/* ACTIVOS */}
           <div className="card shadow-sm flex-fill border-0">
             <div className="card-body py-3 d-flex align-items-center">
               <div className="bg-light p-3 rounded-3 me-3 text-success">
@@ -208,7 +233,6 @@ export const UsuarioPage = () => {
           </div>
         </div>
 
-        {/* FILTROS */}
         <div className="col-md-7 d-flex">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body py-2 d-flex flex-column flex-md-row align-items-center gap-3 h-100">
@@ -222,10 +246,7 @@ export const UsuarioPage = () => {
 
               <select
                 className="form-select border-0 bg-light"
-                style={{
-                  width: "auto",
-                  minWidth: "180px",
-                }}
+                style={{ width: "auto", minWidth: "180px" }}
                 value={rolFiltro}
                 onChange={(e) => setRolFiltro(e.target.value)}
               >
@@ -242,9 +263,7 @@ export const UsuarioPage = () => {
         </div>
       </div>
 
-      {/* =========================
-                    TABLA
-                ========================= */}
+      {/* TABLA */}
       {cargando ? (
         <div className="text-center py-5">Cargando usuarios...</div>
       ) : (
@@ -256,7 +275,6 @@ export const UsuarioPage = () => {
                   <th className="py-3 ps-4 text-muted small fw-bold">CÓDIGO</th>
                   <th className="py-3 text-muted small fw-bold">NOMBRE</th>
                   <th className="py-3 text-muted small fw-bold">CORREO</th>
-               
                   <th className="py-3 text-muted small fw-bold">ROL</th>
                   <th className="py-3 text-muted small fw-bold">ESTADO</th>
                   <th className="py-3 pe-4 text-muted small fw-bold text-end">
@@ -280,8 +298,6 @@ export const UsuarioPage = () => {
                         <td className="fw-semibold">{usuario.nombre}</td>
 
                         <td>{usuario.correo}</td>
-
-              
 
                         <td>
                           <span
@@ -319,9 +335,7 @@ export const UsuarioPage = () => {
                           <button
                             type="button"
                             className="btn btn-sm btn-danger"
-                            onClick={() =>
-                              eliminarUsuario(usuario.id, usuario.nombre)
-                            }
+                            onClick={() => setPorEliminar(usuario)}
                           >
                             <i className="bi bi-trash"></i>
                           </button>
@@ -331,7 +345,7 @@ export const UsuarioPage = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center py-5 text-muted">
+                    <td colSpan={6} className="text-center py-5 text-muted">
                       No se encontraron usuarios.
                     </td>
                   </tr>
@@ -342,17 +356,12 @@ export const UsuarioPage = () => {
         </div>
       )}
 
-      {/* =========================
-                    MODAL
-                ========================= */}
-
+      {/* MODAL FORMULARIO */}
       {showModal && (
         <div
           className="modal fade show d-block"
           tabIndex={-1}
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-          }}
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
         >
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content border-0 shadow">
@@ -378,6 +387,120 @@ export const UsuarioPage = () => {
           </div>
         </div>
       )}
+
+      {/* MODAL CONFIRMAR ELIMINACIÓN */}
+      {porEliminar && (
+        <div
+          className="d-flex align-items-center justify-content-center p-3"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 2100,
+            backgroundColor: "rgba(60, 40, 25, 0.45)",
+          }}
+          onClick={() => !eliminando && setPorEliminar(null)}
+        >
+          <div
+            className="bg-white rounded-4 shadow-lg p-4 text-center"
+            style={{
+              width: "100%",
+              maxWidth: 400,
+              animation: "checkPop 0.25s ease-out",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+              style={{
+                width: 64,
+                height: 64,
+                backgroundColor: "#f1e4d1",
+                color: "var(--admin-primary, #6f4e37)",
+                fontSize: 28,
+              }}
+            >
+              <i className="bi bi-trash"></i>
+            </div>
+            <h5
+              className="fw-bold mb-2"
+              style={{ color: "var(--admin-primary, #6f4e37)" }}
+            >
+              ¿Eliminar usuario?
+            </h5>
+            <p className="text-muted mb-4" style={{ fontSize: 14 }}>
+              Vas a eliminar a <strong>"{porEliminar.nombre}"</strong>. Esta
+              acción no se puede deshacer.
+            </p>
+            <div className="d-flex gap-2">
+              <button
+                type="button"
+                className="btn flex-fill rounded-pill fw-semibold"
+                style={{
+                  backgroundColor: "#f1e4d1",
+                  color: "var(--admin-primary, #6f4e37)",
+                }}
+                disabled={eliminando}
+                onClick={() => setPorEliminar(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn flex-fill rounded-pill fw-semibold"
+                style={{
+                  backgroundColor: "var(--admin-primary, #6f4e37)",
+                  color: "#ffffff",
+                }}
+                disabled={eliminando}
+                onClick={confirmarEliminacion}
+              >
+                {eliminando ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ANIMACIÓN DE ÉXITO */}
+      <style>{`
+        @keyframes checkPop {
+          0% { transform: scale(0.6); opacity: 0; }
+          60% { transform: scale(1.08); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
+      {animando && (
+        <div
+          className="d-flex align-items-center justify-content-center"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 2000,
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            className="rounded-circle d-flex align-items-center justify-content-center shadow"
+            style={{
+              width: 96,
+              height: 96,
+              backgroundColor: "var(--admin-primary, #6f4e37)",
+              color: "#ffffff",
+              fontSize: 52,
+              animation: "checkPop 0.4s ease-out",
+            }}
+          >
+            <i className="bi bi-check-lg"></i>
+          </div>
+        </div>
+      )}
+
+      <SaleToast
+        visible={toast.visible}
+        titulo={toast.titulo}
+        mensaje={toast.mensaje}
+        tono={toast.tono}
+      />
     </div>
   );
 };
