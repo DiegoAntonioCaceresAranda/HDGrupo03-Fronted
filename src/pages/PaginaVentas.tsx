@@ -102,6 +102,17 @@ const PaginaVentas: FC = (): ReactElement => {
     setToast({ visible: true, titulo, mensaje, tono });
   };
 
+  // ocultar el toast después de 3 segundos
+  useEffect(() => {
+    if(!toast.visible) return;
+
+    const timer = setTimeout(() => {
+      setToast((prev) => ({ ...prev, visible: false }));
+    } , 3000);
+
+    return () => clearTimeout(timer);
+  }, [toast.visible, toast.titulo, toast.mensaje]);
+
   // Carga el pendiente elegido en la otra pantalla dentro del ticket
   useEffect(() => {
     if (!pendienteEntrante || cargando || pendienteCargado.current) return;
@@ -354,12 +365,14 @@ const PaginaVentas: FC = (): ReactElement => {
         </div>
       </div>
 
+      {toast.visible && (
       <SaleToast
         visible={toast.visible}
         titulo={toast.titulo}
         mensaje={toast.mensaje}
         tono={toast.tono}
       />
+      )}
     </>
   );
 };
