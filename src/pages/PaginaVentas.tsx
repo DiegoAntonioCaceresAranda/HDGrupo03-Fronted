@@ -102,6 +102,17 @@ const PaginaVentas: FC = (): ReactElement => {
     setToast({ visible: true, titulo, mensaje, tono });
   };
 
+  // Oculta la alerta automáticamente después de unos segundos
+  useEffect(() => {
+    if (!toast.visible) return;
+
+    const temporizador = setTimeout(() => {
+      setToast((anterior) => ({ ...anterior, visible: false }));
+    }, 3000);
+
+    return () => clearTimeout(temporizador);
+  }, [toast]);
+
   // Carga el pendiente elegido en la otra pantalla dentro del ticket
   useEffect(() => {
     if (!pendienteEntrante || cargando || pendienteCargado.current) return;
