@@ -1,5 +1,5 @@
 import type { FC, ReactElement } from "react";
-import { Wallet, ShoppingBag, Receipt, Truck } from "lucide-react";
+import { Wallet, ShoppingBag, Receipt } from "lucide-react";
 import FiltrarFecha from "../features/dashboard/components/FiltrarFecha";
 import StatCard from "../components/ui/StatCard";
 import ProductosDestacados from "../features/dashboard/components/ProductosDestacados";
@@ -30,7 +30,7 @@ const PaginaReportes: FC = (): ReactElement => {
 
         {data && (
           <div className="row g-4">
-            <div className="col-12 col-sm-6 col-lg-3">
+            <div className="col-12 col-md-4">
               <StatCard
                 title="Ingresos Totales"
                 value={formatoMoneda(data.ganancia.total)}
@@ -38,7 +38,7 @@ const PaginaReportes: FC = (): ReactElement => {
                 percentageChange={data.ganancia.cambioPorcentaje}
               />
             </div>
-            <div className="col-12 col-sm-6 col-lg-3">
+              <div className="col-12 col-md-4">
               <StatCard
                 title="Pedidos Totales"
                 value={data.pedidos.total.toString()}
@@ -46,7 +46,7 @@ const PaginaReportes: FC = (): ReactElement => {
                 percentageChange={data.pedidos.cambioPorcentaje}
               />
             </div>
-            <div className="col-12 col-sm-6 col-lg-3">
+              <div className="col-12 col-md-4">
               <StatCard
                 title="Ticket Promedio"
                 value={formatoMoneda(data.ticketPromedio.cantidad)}
@@ -54,15 +54,7 @@ const PaginaReportes: FC = (): ReactElement => {
                 percentageChange={data.ticketPromedio.cambioPorcentaje}
               />
             </div>
-            <div className="col-12 col-sm-6 col-lg-3">
-              <StatCard
-                title="Pendientes de Entrega"
-                value={data.deliveryPendiente.contador.toString()}
-                icon={Truck}
-                caption="pedidos por despachar"
-              />
-            </div>
-
+            
             <div className="col-12">
               <ProductosDestacados products={data.productoDestacado} />
             </div>

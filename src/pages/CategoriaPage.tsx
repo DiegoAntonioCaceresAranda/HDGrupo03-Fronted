@@ -1,12 +1,22 @@
-import { useEffect, useState } from "react";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { isAxiosError } from "axios";
+
 import CategoriaForm from "../components/Categoria/CategoriasForm";
 import { catergoriaService } from "../services/CategoriaService";
 import type { Categoria } from "../data/Categoria";
+import SaleToast from "../features/ventas/components/SaleToast";
 
-// Saca el mensaje de error que devuelve FastAPI (detail)
-const mensajeError = (err: any, porDefecto: string): string => {
-  const detalle = err?.response?.data?.detail;
-  return typeof detalle === "string" ? detalle : porDefecto;
+const mensajeError = (error: unknown, porDefecto: string): string => {
+  if (isAxiosError(error)) {
+    const detalle = error.response?.data?.detail;
+
+    if (typeof detalle === "string") {
+      return detalle;
+    }
+  }
+
+  return porDefecto;
 };
 
 export const CategoriasPage = () => {
@@ -14,46 +24,158 @@ export const CategoriasPage = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
-  // Modal
+  // Modal de crear y editar
   const [showModal, setShowModal] = useState(false);
   const [errorModal, setErrorModal] = useState("");
-
-  // Categoría a editar
-  const [categoriaEditar, setCategoriaEditar] = useState<Categoria | null>(
-    null,
-  );
+  const [categoriaEditar, setCategoriaEditar] =
+    useState<Categoria | null>(null);
 
   // Buscador
   const [busquedad, setBusqueda] = useState("");
 
-  // READ
+  // Confirmación de eliminación
+  const [porEliminar, setPorEliminar] = useState<Categoria | null>(null);
+  const [eliminando, setEliminando] = useState(false);
+
+  // Notificaciones
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    titulo: string;
+    mensaje: string;
+    tono: "exito" | "error";
+  }>({
+    visible: false,
+    titulo: "",
+    mensaje: "",
+    tono: "exito",
+  });
+
+  // Animación de éxito
+  const [animando, setAnimando] = useState(false);
+
+  const temporizadorToast = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const temporizadorAnim = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  // Mostrar notificación y animación
+  const mostrarToast = useCallback(
+    (
+      titulo: string,
+      mensaje: string,
+      tono: "exito" | "error" = "exito",
+    ) => {
+      if (temporizadorToast.current) {
+        clearTimeout(temporizadorToast.current);
+      }
+
+      setToast({
+        visible: true,
+        titulo,
+        mensaje,
+        tono,
+      });
+
+      temporizadorToast.current = setTimeout(() => {
+        setToast((anterior) => ({
+          ...anterior,
+          visible: false,
+        }));
+      }, 3000);
+
+      if (tono === "exito") {
+        if (temporizadorAnim.current) {
+          clearTimeout(temporizadorAnim.current);
+        }
+
+        setAnimando(true);
+
+        temporizadorAnim.current = setTimeout(() => {
+          setAnimando(false);
+        }, 1000);
+      }
+    },
+    [],
+  );
+
+  // READ: Recargar categorías después de crear o editar
   const cargarCategorias = async () => {
     try {
       setError("");
-      setCategorias(await catergoriaService.listarCategorias());
+
+      const datos = await catergoriaService.listarCategorias();
+
+      setCategorias(datos);
     } catch {
-      setError("No se pudieron cargar las categorías. ¿Está corriendo FastAPI?");
+      setError(
+        "No se pudieron cargar las categorías. ¿Está corriendo FastAPI?",
+      );
     } finally {
       setCargando(false);
     }
   };
 
+  // Carga inicial sin actualizar el estado directamente en el efecto
   useEffect(() => {
-    cargarCategorias();
+    let activo = true;
+
+    catergoriaService
+      .listarCategorias()
+      .then((datos) => {
+        if (activo) {
+          setCategorias(datos);
+          setError("");
+        }
+      })
+      .catch(() => {
+        if (activo) {
+          setError(
+            "No se pudieron cargar las categorías. ¿Está corriendo FastAPI?",
+          );
+        }
+      })
+      .finally(() => {
+        if (activo) {
+          setCargando(false);
+        }
+      });
+
+    return () => {
+      activo = false;
+    };
   }, []);
 
+  // Limpiar temporizadores al desmontar el componente
+  useEffect(() => {
+    return () => {
+      if (temporizadorToast.current) {
+        clearTimeout(temporizadorToast.current);
+      }
+
+      if (temporizadorAnim.current) {
+        clearTimeout(temporizadorAnim.current);
+      }
+    };
+  }, []);
+
+  // ABRIR MODAL PARA CREAR
   const abrirNuevaCategoria = () => {
     setCategoriaEditar(null);
     setErrorModal("");
     setShowModal(true);
   };
 
+  // ABRIR MODAL PARA EDITAR
   const editarCategoria = (categoria: Categoria) => {
     setCategoriaEditar(categoria);
     setErrorModal("");
     setShowModal(true);
   };
 
+  // CERRAR MODAL
   const cerrarModal = () => {
     setShowModal(false);
     setCategoriaEditar(null);
@@ -61,41 +183,77 @@ export const CategoriasPage = () => {
   };
 
   // CREATE / UPDATE
-  const guardarCategoria = async (datos: Omit<Categoria, "id">) => {
+  const guardarCategoria = async (
+    datos: Omit<Categoria, "id">,
+  ) => {
+    const editando = categoriaEditar !== null;
+
     try {
       setErrorModal("");
 
       if (categoriaEditar) {
-        await catergoriaService.actualizarCategoria(categoriaEditar.id, datos);
+        await catergoriaService.actualizarCategoria(
+          categoriaEditar.id,
+          datos,
+        );
       } else {
         await catergoriaService.crearCategoria(datos);
       }
 
-      await cargarCategorias();
+      // Cerrar modal y mostrar notificación
       cerrarModal();
+
+      mostrarToast(
+        editando ? "Categoría actualizada" : "Categoría creada",
+        editando
+          ? "Los cambios se guardaron correctamente."
+          : "La categoría se registró correctamente.",
+      );
+
+      // Actualizar la lista en segundo plano
+      void cargarCategorias();
     } catch (err) {
-      // Ejemplo: 409 "La categoría ya está registrada"
-      setErrorModal(mensajeError(err, "No se pudo guardar la categoría."));
+      setErrorModal(
+        mensajeError(err, "No se pudo guardar la categoría."),
+      );
     }
   };
 
-  // DELETE
-  const eliminarCategoria = async (id: number, nombre: string) => {
-    const confirmar = window.confirm(
-      `¿Estás seguro de que deseas eliminar la categoría "${nombre}"?`,
-    );
-    if (!confirmar) return;
+  // DELETE: Confirmar eliminación
+  const confirmarEliminacion = async () => {
+    if (!porEliminar) return;
+
+    const { id, nombre } = porEliminar;
+
+    setEliminando(true);
 
     try {
       await catergoriaService.eliminarCategoria(id);
-      await cargarCategorias();
+
+      // Actualizar la tabla inmediatamente
+      setCategorias((anterior) =>
+        anterior.filter((categoria) => categoria.id !== id),
+      );
+
+      setPorEliminar(null);
+
+      mostrarToast(
+        "Categoría eliminada",
+        `"${nombre}" fue eliminada correctamente.`,
+      );
     } catch (err) {
-      alert(
+      setPorEliminar(null);
+
+      mostrarToast(
+        "No se pudo eliminar",
         mensajeError(
           err,
           "No se pudo eliminar la categoría. Puede tener productos asociados.",
         ),
+        "error",
       );
+    } finally {
+      setEliminando(false);
     }
   };
 
@@ -113,10 +271,12 @@ export const CategoriasPage = () => {
             Collins Café{" "}
             <span className="text-secondary fw-normal">/ Categorías</span>
           </h2>
+
           <small className="text-muted">
             Gestión y organización de las categorías de productos
           </small>
         </div>
+
         <div>
           <button
             className="btn btn-dark fw-semibold"
@@ -139,6 +299,7 @@ export const CategoriasPage = () => {
               <div className="bg-cafe-light p-3 rounded-3 me-3 text-cafe">
                 <i className="bi bi-tags fs-3"></i>
               </div>
+
               <div>
                 <small
                   className="text-muted fw-bold d-block"
@@ -146,6 +307,7 @@ export const CategoriasPage = () => {
                 >
                   CATEGORÍAS
                 </small>
+
                 <h4 className="mb-0 fw-bold">{categorias.length}</h4>
               </div>
             </div>
@@ -160,6 +322,7 @@ export const CategoriasPage = () => {
                 <span className="input-group-text bg-light border-0">
                   <i className="bi bi-search text-muted"></i>
                 </span>
+
                 <input
                   type="text"
                   className="form-control bg-light border-0"
@@ -175,17 +338,22 @@ export const CategoriasPage = () => {
 
       {/* ================= TABLA ================= */}
       <div className="card shadow-sm border-0 rounded-4">
-        <div className="card-body p-0">
+        <div className="card-body p-0 table-responsive">
           <table className="table table-hover align-middle mb-0">
             <thead className="table-light">
               <tr>
                 <th className="py-3 ps-4 text-muted small fw-bold">#</th>
-                <th className="py-3 text-muted small fw-bold">CATEGORÍA</th>
+
+                <th className="py-3 text-muted small fw-bold">
+                  CATEGORÍA
+                </th>
+
                 <th className="py-3 pe-4 text-muted small fw-bold text-end">
                   ACCIONES
                 </th>
               </tr>
             </thead>
+
             <tbody>
               {cargando ? (
                 <tr>
@@ -197,21 +365,22 @@ export const CategoriasPage = () => {
                 categoriasFiltradas.map((categoria, index) => (
                   <tr key={categoria.id}>
                     <td className="ps-4 text-muted">{index + 1}</td>
+
                     <td className="fw-semibold">{categoria.nombre}</td>
+
                     <td className="pe-4 text-end">
                       <button
-                        className="btn btn-sm btn-outline-cafe me-2"
+                        className="btn btn-sm btn-outline-dark me-2"
                         title="Editar Categoría"
                         onClick={() => editarCategoria(categoria)}
                       >
                         <i className="bi bi-pencil-square"></i>
                       </button>
+
                       <button
                         className="btn btn-sm btn-danger"
                         title="Eliminar Categoría"
-                        onClick={() =>
-                          eliminarCategoria(categoria.id, categoria.nombre)
-                        }
+                        onClick={() => setPorEliminar(categoria)}
                       >
                         <i className="bi bi-trash"></i>
                       </button>
@@ -219,7 +388,6 @@ export const CategoriasPage = () => {
                   </tr>
                 ))
               ) : (
-                /* SIN RESULTADOS */
                 <tr>
                   <td colSpan={3} className="text-center py-4 text-muted">
                     No se encontraron categorías.
@@ -231,7 +399,7 @@ export const CategoriasPage = () => {
         </div>
       </div>
 
-      {/* ================= MODAL ================= */}
+      {/* ================= MODAL CREAR / EDITAR ================= */}
       {showModal && (
         <div
           className="modal fade show d-block"
@@ -246,8 +414,12 @@ export const CategoriasPage = () => {
               <div className="modal-header border-bottom-0">
                 <h5 className="modal-title fw-bold text-cafe">
                   <i className="bi bi-tags me-2"></i>
-                  {categoriaEditar ? "Editar Categoría" : "Nueva Categoría"}
+
+                  {categoriaEditar
+                    ? "Editar Categoría"
+                    : "Nueva Categoría"}
                 </h5>
+
                 <button
                   type="button"
                   className="btn-close"
@@ -258,6 +430,11 @@ export const CategoriasPage = () => {
               {/* FORMULARIO */}
               <div className="modal-body">
                 <CategoriaForm
+                  key={
+                    categoriaEditar
+                      ? `editar-${categoriaEditar.id}`
+                      : "nueva-categoria"
+                  }
                   categoria={categoriaEditar}
                   onSave={guardarCategoria}
                 />
@@ -278,12 +455,14 @@ export const CategoriasPage = () => {
                 >
                   Cancelar
                 </button>
+
                 <button
                   type="submit"
                   form="categoriaForm"
                   className="btn btn-dark"
                 >
                   <i className="bi bi-check-lg me-2"></i>
+
                   {categoriaEditar
                     ? "Actualizar Categoría"
                     : "Guardar Categoría"}
@@ -293,6 +472,137 @@ export const CategoriasPage = () => {
           </div>
         </div>
       )}
+
+      {/* ================= MODAL CONFIRMAR ELIMINACIÓN ================= */}
+      {porEliminar && (
+        <div
+          className="d-flex align-items-center justify-content-center p-3"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 2100,
+            backgroundColor: "rgba(60, 40, 25, 0.45)",
+          }}
+          onClick={() => !eliminando && setPorEliminar(null)}
+        >
+          <div
+            className="bg-white rounded-4 shadow-lg p-4 text-center"
+            style={{
+              width: "100%",
+              maxWidth: 400,
+              animation: "checkPop 0.25s ease-out",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+              style={{
+                width: 64,
+                height: 64,
+                backgroundColor: "#f1e4d1",
+                color: "var(--admin-primary, #6f4e37)",
+                fontSize: 28,
+              }}
+            >
+              <i className="bi bi-trash"></i>
+            </div>
+
+            <h5
+              className="fw-bold mb-2"
+              style={{ color: "var(--admin-primary, #6f4e37)" }}
+            >
+              ¿Eliminar categoría?
+            </h5>
+
+            <p className="text-muted mb-4" style={{ fontSize: 14 }}>
+              Vas a eliminar <strong>"{porEliminar.nombre}"</strong>. Esta
+              acción no se puede deshacer.
+            </p>
+
+            <div className="d-flex gap-2">
+              <button
+                type="button"
+                className="btn flex-fill rounded-pill fw-semibold"
+                style={{
+                  backgroundColor: "#f1e4d1",
+                  color: "var(--admin-primary, #6f4e37)",
+                }}
+                disabled={eliminando}
+                onClick={() => setPorEliminar(null)}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                className="btn flex-fill rounded-pill fw-semibold"
+                style={{
+                  backgroundColor: "var(--admin-primary, #6f4e37)",
+                  color: "#ffffff",
+                }}
+                disabled={eliminando}
+                onClick={confirmarEliminacion}
+              >
+                {eliminando ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= ANIMACIÓN DE ÉXITO ================= */}
+      <style>{`
+        @keyframes checkPop {
+          0% {
+            transform: scale(0.6);
+            opacity: 0;
+          }
+
+          60% {
+            transform: scale(1.08);
+            opacity: 1;
+          }
+
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+      `}</style>
+
+      {animando && (
+        <div
+          className="d-flex align-items-center justify-content-center"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 2000,
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            className="rounded-circle d-flex align-items-center justify-content-center shadow"
+            style={{
+              width: 96,
+              height: 96,
+              backgroundColor: "var(--admin-primary, #6f4e37)",
+              color: "#ffffff",
+              fontSize: 52,
+              animation: "checkPop 0.4s ease-out",
+            }}
+          >
+            <i className="bi bi-check-lg"></i>
+          </div>
+        </div>
+      )}
+
+      {/* NOTIFICACIONES */}
+      <SaleToast
+        visible={toast.visible}
+        titulo={toast.titulo}
+        mensaje={toast.mensaje}
+        tono={toast.tono}
+      />
     </div>
   );
 };
